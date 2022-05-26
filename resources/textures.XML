@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Describes how in-game textures are mapped.</comment>
+<entry key="FIELD-Xinxi">./resources/tiles/Xinxi/field.png</entry>
+<entry key="FOREST-Xinxi">./resources/tiles/Xinxi/forest.png</entry>
+<entry key="MOUNTAIN-Xinxi">./resources/tiles/Xinxi/mountain.png</entry>
+<entry key="FRUIT-Xinxi">./resources/tiles/Xinxi/fruits.png</entry>
+<entry key="ANIMAL-Xinxi">./resources/tiles/Xinxi/animal.png</entry>
+<entry key="CITY-Xinxi">./resources/tiles/Xinxi/city2.png</entry>
+<entry key="FIELD-Imperius">./resources/tiles/Imperius/field.png</entry>
+<entry key="FOREST-Imperius">./resources/tiles/Imperius/forest.png</entry>
+<entry key="MOUNTAIN-Imperius">./resources/tiles/Imperius/mountain.png</entry>
+<entry key="FRUIT-Imperius">./resources/tiles/Imperius/fruits.png</entry>
+<entry key="ANIMAL-Imperius">./resources/tiles/Imperius/animal.png</entry>
+<entry key="CITY-Imperius">./resources/tiles/Imperius/city2.png</entry>
+<entry key="FIELD-Bardur">./resources/tiles/Bardur/field.png</entry>
+<entry key="FOREST-Bardur">./resources/tiles/Bardur/forest.png</entry>
+<entry key="MOUNTAIN-Bardur">./resources/tiles/Bardur/mountain.png</entry>
+<entry key="FRUIT-Bardur">./resources/tiles/Bardur/fruits.png</entry>
+<entry key="ANIMAL-Bardur">./resources/tiles/Bardur/animal.png</entry>
+<entry key="CITY-Bardur">./resources/tiles/Bardur/city2.png</entry>
+<entry key="FIELD-Oumaji">./resources/tiles/Oumaji/field.png</entry>
+<entry key="FOREST-Oumaji">./resources/tiles/Oumaji/forest.png</entry>
+<entry key="MOUNTAIN-Oumaji">./resources/tiles/Oumaji/mountain.png</entry>
+<entry key="FRUIT-Oumaji">./resources/tiles/Oumaji/fruits.png</entry>
+<entry key="ANIMAL-Oumaji">./resources/tiles/Oumaji/animal.png</entry>
+<entry key="CITY-Oumaji">./resources/tiles/Oumaji/city2.png</entry>
+<entry key="SHORE">./resources/tiles/shore.png</entry>
+<entry key="OCEAN">./resources/tiles/ocean.png</entry>
+<entry key="FOG">./resources/tiles/fog.png</entry>
+<entry key="CROP">./resources/tiles/crop.png</entry>
+<entry key="METAL">./resources/tiles/metal.png</entry>
+<entry key="FISH">./resources/tiles/fish.png</entry>
+<entry key="WHALE">./resources/tiles/whale.png</entry>
+<entry key="RUINS">./resources/tiles/ruins.png</entry>
+<entry key="VILLAGE">./resources/tiles/village.png</entry>
+<entry key="FARM">./resources/tiles/farm.png</entry>
+<entry key="FORGE">./resources/tiles/forge.png</entry>
+<entry key="SAWMILL">./resources/tiles/sawmill.png</entry>
+<entry key="LUMBER_HUT">./resources/tiles/lumberhut.png</entry>
+<entry key="MINE">./resources/tiles/mine.png</entry>
+<entry key="PORT">./resources/tiles/port.png</entry>
+<entry key="WINDMILL">./resources/tiles/windmill.png</entry>
+<entry key="CUSTOMS_HOUSE">./resources/tiles/customshouse.png</entry>
+</properties>
