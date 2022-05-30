@@ -43,7 +43,9 @@ public class TileMap {
 		return this.mapType.toString();
 	}
 
-	
+	public int GetSize() {
+		return this.size;
+	}
 	public static ArrayList<Tile> getInmostRing(Tile[][] grid, int x, int y) {
 		ArrayList<Tile> tiles = new ArrayList<Tile>();
 		for (int d = 0; d < inmostRing.length; d++) {
