@@ -728,5 +728,199 @@ class ActionDestroyImprovement extends Action {
 	public ActionDestroyImprovement(Improvement subject) {this.subject = subject;}
 
 }
+/*
+The following are the actions for units
+* */
+class ActionMove extends Action {
 
+	private Unit unit;
+	private Tile destination;
 
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionMove");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return (unit.recover == 1) && (unit.movable != -1) && ((unit.movable == 1 && unit.attack == 1)
+				|| (unit.movable == 0 && unit.attack == 0 && unit.Escape));
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Carry or land
+		new ConseqCarryOrLand(unit, destination).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " move to " + destination.toString();
+	}
+
+	public ActionMove(Unit unit, Tile destination) {this.unit = unit; this.destination = destination;}
+}
+
+class ActionAttack extends Action {
+
+	private Unit unit;
+	private Unit enemy;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionAttack");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.recover == 1 && unit.attack == 1 && unit.searchEnemy().contains(enemy)
+				&& ((unit.movable == 0 && unit.Dash) || (unit.movable == 1));
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Lost in health or death
+		new ConseqAttackedOrDeath(unit, enemy).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " attack " + enemy.toString();
+	}
+
+	public ActionAttack(Unit unit,Unit enemy) {this.unit = unit; this.enemy = enemy;}
+}
+
+class ActionRecover extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionRecover");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return (unit.recoverable()) && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Recover
+		new ConseqRecover(unit).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " recovers";
+	}
+
+	public ActionRecover(Unit unit) {this.unit = unit;}
+}
+
+class ActionHeal extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionHeal");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.Heal && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Heal
+		new ConseqHeal(unit).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " heals";
+	}
+
+	public ActionHeal(Unit unit) {this.unit = unit;}
+}
+
+class ActionConvert extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionConvert");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.Convert && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Convert
+		new ConseqConvert(unit).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " converts";
+	}
+
+	public ActionConvert(Unit unit) {this.unit = unit;}
+}
