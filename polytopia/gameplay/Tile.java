@@ -67,7 +67,14 @@ public class Tile implements Visualizable {
 	public TileVariation getVariation() {return this.variation;}
 	public Faction getStyle() {return this.style;}
 	public Unit getUnit() {return this.unit;}
+	public void setUnit(Unit unit) {this.unit = unit;}
 	public City getOwnerCity() {return this.ownerCity;}
+	public boolean hasEnemy(Player player) {
+		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() != player;
+	}
+	public boolean hasAlly(Player player) {
+		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() == player;
+	}
 	public Action[] getActions() {return this.actions;}
 
 	public void setTerrainType(TerrainType type) {this.terrain = type;}
@@ -95,6 +102,8 @@ public class Tile implements Visualizable {
 		}
 		return false;
 	}
+
+
 
 	public static void main(String[] args) {
 		TilesTest display = new TilesTest();
