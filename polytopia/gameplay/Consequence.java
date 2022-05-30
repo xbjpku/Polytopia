@@ -494,3 +494,171 @@ class ConseqChangeTerrain extends Consequence {
 		return String.format("[Change Terrain (%s)]", type.toString());
 	}
 }
+
+/*
+The following are the consequences for units
+* */
+class ConseqCarryOrLand extends Consequence {
+	private Unit unit;
+	private Tile tile;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("Tile (%d, %d)", tile.getX(), tile.getY());
+	}
+
+	public void apply() {
+		unit.Move(tile);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s moves to (%d, %d)]", unit.toString(), tile.getX(), tile.getY());
+	}
+
+	public ConseqCarryOrLand(Unit unit, Tile tile) {
+		this.unit = unit;
+		this.tile = tile;
+	}
+}
+
+class ConseqAttackedOrDeath extends Consequence {
+	private Unit unit;
+	private Unit enemy;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("(%s) attacks (%s)", unit.toString(), enemy.toString());
+	}
+
+	public void apply() {
+		unit.Attack(enemy.position);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s attacks (%s)]", unit.toString(), enemy.toString());
+	}
+
+	public ConseqAttackedOrDeath(Unit unit, Unit enemy) {
+		this.unit = unit;
+		this.enemy = enemy;
+	}
+
+}
+
+class ConseqRecover extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("(%s) recovers", unit.toString());
+	}
+
+	public void apply() {
+		unit.Recover();
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s recovers]", unit.toString());
+	}
+
+	public ConseqRecover(Unit unit) {
+		this.unit = unit;
+	}
+}
+
+class ConseqHeal extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("(%s) heals", unit.toString());
+	}
+
+	public void apply() {
+		unit.Heal();
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s heals]", unit.toString());
+	}
+
+	public ConseqHeal(Unit unit) {
+		this.unit = unit;
+	}
+}
+
+class ConseqConvert extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("(%s) converts enemy", unit.toString());
+	}
+
+	public void apply() {
+		unit.Convert();
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s converts enemy]", unit.toString());
+	}
+
+	public ConseqConvert(Unit unit) {
+		this.unit = unit;
+	}
+}
