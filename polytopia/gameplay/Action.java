@@ -754,7 +754,7 @@ class ActionMove extends Action {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
 		// Carry or land
-		new ConseqCarryOrLand(unit, destination).log(history);
+		new ConseqMove(unit, destination).log(history);
 
 		return history;
 	}
