@@ -498,7 +498,7 @@ class ConseqChangeTerrain extends Consequence {
 /*
 The following are the consequences for units
 * */
-class ConseqCarryOrLand extends Consequence {
+class ConseqMove extends Consequence {
 	private Unit unit;
 	private Tile tile;
 
@@ -541,7 +541,7 @@ class ConseqCarryOrLand extends Consequence {
 		return String.format("[%s moves to (%d, %d)]", unit.toString(), tile.getX(), tile.getY());
 	}
 
-	public ConseqCarryOrLand(Unit unit, Tile tile) {
+	public ConseqMove(Unit unit, Tile tile) {
 		this.unit = unit;
 		this.tile = tile;
 	}
@@ -639,7 +639,11 @@ class ConseqAttackedOrDeath extends Consequence {
 		// if enemy is killed
 		if(attackResult >= enemy.getHp()) {
 			new ConseqDie(enemy).log(history);
+<<<<<<< patch-6
 			new ConseqCarryOrLand(unit, enemy.position).log(history);
+=======
+			new ConseqMove(unit, enemy.position).log(history);
+>>>>>>> master
 			return;
 		}
 		// otherwise gets injured and retaliates
