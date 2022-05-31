@@ -66,7 +66,8 @@ public class Unit implements Visualizable {
 	public Player getOwnerPlayer() {return this.ownerPlayer;}
 	public City getOwnerCity() {return this.ownerCity;}
 
-	Unit(Player ownerPlayer_,City ownerCity_, CharType type_) {
+	Unit(TileMap map_, Player ownerPlayer_, City ownerCity_, CharType type_) {
+		this.map = map_;
 		this.ownerPlayer = ownerPlayer_;
 		this.ownerCity = ownerCity_;
 		this.type = type_;
@@ -184,6 +185,15 @@ public class Unit implements Visualizable {
 						if(!map.getGrid()[i][j].hasAlly(ownerPlayer))
 							surroundings.add(map.getGrid()[i][j]);
 		return surroundings;
+	}
+
+	public ArrayList<Tile> getMovable() {
+		ArrayList<Tile> destination = new ArrayList<>();
+		for(int i = 1; i <= getMoveRange(); i++)
+			for(Tile tile: getSurroundings(i))
+				if(!tile.hasAlly(ownerPlayer) && !tile.hasEnemy(ownerPlayer))
+					destination.add(tile);
+		return destination;
 	}
 
 	public ArrayList<Tile> searchEnemy() {
@@ -360,12 +370,42 @@ public class Unit implements Visualizable {
 		for(int i = 1; i <= getAttackRange(); i++)
 			for(Tile tile: getSurroundings(i))
 				if(tile.hasEnemy(ownerPlayer)) {
-					Unit traitor = new Unit(ownerPlayer, ownerCity, CharType.WARRIOR);
+					Unit traitor = new Unit(map, ownerPlayer, ownerCity, CharType.WARRIOR);
 					tile.setUnit(traitor);
 					visualizeConvert(tile);
 					movable = 0;
 					attack = 0;
 				}
+	}
+
+	public ArrayList<Action> getActions() {
+		ArrayList<Action> legalActions = new ArrayList<>();
+		int combined = movable << 2 | attack << 1 | recover;
+		switch(combined) {
+			case 7:
+				if(getHp() < getHpMax())
+					legalActions.add(new ActionRecover(this));
+				if(Heal)
+					legalActions.add(new ActionHeal(this));
+				if(Convert)
+					legalActions.add(new ActionConvert(this));
+				for(Tile tile: getMovable())
+					legalActions.add(new ActionMove(this, tile));
+				for(Tile tile: searchEnemy())
+					legalActions.add(new ActionAttack(this, tile.getUnit()));
+				break;
+			case 1:
+				if(Escape)
+					for(Tile tile: getMovable())
+						legalActions.add(new ActionMove(this, tile));
+				break;
+			case 3:
+				if(Dash)
+					for(Tile tile: searchEnemy())
+						legalActions.add(new ActionAttack(this, tile.getUnit()));
+				break;
+		}
+		return legalActions;
 	}
 
 
