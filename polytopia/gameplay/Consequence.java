@@ -639,7 +639,11 @@ class ConseqAttackedOrDeath extends Consequence {
 		// if enemy is killed
 		if(attackResult >= enemy.getHp()) {
 			new ConseqDie(enemy).log(history);
+<<<<<<< patch-6
+			new ConseqCarryOrLand(unit, enemy.position).log(history);
+=======
 			new ConseqMove(unit, enemy.position).log(history);
+>>>>>>> master
 			return;
 		}
 		// otherwise gets injured and retaliates
