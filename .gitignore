@@ -1,3 +1,5 @@
 bin
 .DS_Store
+resources/.DS_Store
+resources/tiles/.DS_Store
 resources/raw

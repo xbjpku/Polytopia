@@ -13,8 +13,8 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.InputMismatchException;
 
-import polytopia.graphics.Texture;
 import polytopia.graphics.Visualizable;
+import polytopia.graphics.Render;
 import polytopia.gameplay.Player.Faction;
 import polytopia.gameplay.Player.Tech;
 
@@ -58,7 +58,11 @@ public class Tile implements Visualizable {
 
 		this.actions = new Action[] {new ActionBuildLumberHut(this), new ActionBuildPort(this), 
 									new ActionClearForest(this), new ActionBuildSawmill(this),
-									new ActionBuildForge(this), new ActionBuildWindmill(this)};
+									new ActionBuildForge(this), new ActionBuildWindmill(this), 
+									new ActionBuildCustomsHouse(this), new ActionBuildTemple(this),
+									new ActionBuildForestTemple(this), new ActionBuildAquaTemple(this),
+									new ActionBuildMountainTemple(this), new ActionBurnForest(this),
+									new ActionGrowForest(this)};
 	}
 
 	public int getX() {return this.x;}
@@ -66,8 +70,16 @@ public class Tile implements Visualizable {
 	public TerrainType getTerrainType() {return this.terrain;}
 	public TileVariation getVariation() {return this.variation;}
 	public Faction getStyle() {return this.style;}
-	public Unit getUnit() {return this.unit;}
 	public City getOwnerCity() {return this.ownerCity;}
+	public Unit getUnit() {return this.unit;}
+	public void setUnit(Unit unit) {this.unit = unit;}
+	public boolean hasEnemy(Player player) {
+		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() != player;
+	}
+	public boolean hasAlly(Player player) {
+		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() == player;
+	}
+
 	public Action[] getActions() {return this.actions;}
 
 	public void setTerrainType(TerrainType type) {this.terrain = type;}
@@ -78,6 +90,11 @@ public class Tile implements Visualizable {
 	// Selection response
 	public void visualize(/* GUI component */) {
 		System.out.printf("Tile (%d, %d) selected\n", this.x, this.y);
+
+		/* Note for Shaw:
+			Tile Jump Animation:
+				Make the *OWNER CITY* of this TILE jump, if it exists.
+				NON-BLOCKING. */
 	}
 
 	// Checks for ownership and unit occupation
@@ -95,6 +112,8 @@ public class Tile implements Visualizable {
 		}
 		return false;
 	}
+
+
 
 	public static void main(String[] args) {
 		TilesTest display = new TilesTest();
@@ -308,63 +327,77 @@ class TilesTest {
 
 	class TestCanvas extends JPanel {
 
-			/* Camera related. */
-			private int cameraX = 400;
-			private int cameraY = 200;
-			private int cameraZoom = 0; 
-			
-			private final int cameraMinZoom = -70;
-			private final int cameraMaxZoom = 140;
-			private final double cameraMinScale = 0.2;
-			private final double cameraMaxScale = 0.5;
-
-			private int dragStartX = 0;
-			private int dragStartY = 0;
-			private int dragEndX = 0;
-			private int dragEndY = 0;
-
-
 			public TestCanvas() {
 				/* Makeshift camera. */
 				addMouseListener(new MouseAdapter() {
             		public void mousePressed(MouseEvent e) {
-                		dragStartX = e.getX();
-						dragStartY = e.getY();
-						dragEndX = dragStartX;
-						dragEndY = dragStartY;
-            		}
-        		});
+                		Render.camera.setStart(e.getX(), e.getY());
 
+					}
+        		});
 				addMouseListener(new MouseAdapter() {
             		public void mouseReleased(MouseEvent e) {
-						cameraX += dragEndX - dragStartX;
-						cameraY += dragEndY - dragStartY;
-                		dragStartX = 0;
-						dragStartY = 0;
-						dragEndX = 0;
-						dragEndY = 0;
-						repaint();
-            		}
-        		});
+						Point2D des = Render.camera.inverseTransPoint(new Point2D.Double((double)e.getX(), (double)e.getY()));
+						int x = (int)Math.ceil(des.getX());
+						int y = (int)Math.ceil(des.getY());
+						if (!TileMap.isValid(Game.map.getGrid(), x, y)) {
+							System.out.printf ("(%d, %d) is not on map", x, y);
+							Render.setSelcected(null);
+						}
+						else {
+							Tile tile = Game.map.getGrid()[y][x];
+							Render.setSelcected(tile);
+							repaint();
+							System.out.printf ("(%d, %d), %s, with %s\n",
+										tile.getX(), tile.getY(), 
+										tile.getTerrainType().toString(),
+										tile.getVariation() != null ?
+										tile.getVariation().toString() : "nothing");
+							if (tile.getVariation() instanceof Improvement) {
+								Improvement improvement = (Improvement) (tile.getVariation());
+								System.out.printf ("%s at level %d\n", improvement.toString(), improvement.getLevel());
+							}
+							else if (tile.getVariation() instanceof City) {
+								City city = (City)(tile.getVariation());
+								System.out.printf ("City %s at (%d, %d)\n", city.getName(), 
+													tile.getX(), tile.getY());
+								System.out.printf ("Level: %d\t Population: %d\n", city.getLevel(), city.getPopulation());
+
+								System.out.println ("Territory:");
+								ArrayList<Tile> territory = city.getTerritory();
+								for (Tile t : territory) {
+									System.out.printf ("(%d, %d), %s, with %s\n",
+														t.getX(), t.getY(), 
+														t.getTerrainType().toString(),
+														t.getVariation() instanceof TileVariation ?
+														t.getVariation().toString() : "nothing");
+								}
+								System.out.println();
+							}
+						}
+					}
+				});
 
 				addMouseWheelListener(new MouseAdapter() {
             		public void mouseWheelMoved(MouseWheelEvent e) {
-						cameraZoom += e.getWheelRotation();
-						if (cameraZoom < cameraMinZoom)
-							cameraZoom = cameraMinZoom;
-						if (cameraZoom > cameraMaxZoom)
-							cameraZoom = cameraMaxZoom;
+						Render.camera.changeScale(e.getWheelRotation());
 						repaint();
             		}
         		});
 
+				
         		addMouseMotionListener(new MouseAdapter() {
             		public void mouseDragged(MouseEvent e) {
-                		dragEndX = e.getX();
-						dragEndY = e.getY();
+						Render.camera.changePos(e.getX(), e.getY());
 						repaint();
             		}
        			});
+				addMouseMotionListener(new MouseAdapter() {
+
+					public void mouseMoved(MouseEvent e) {
+						Render.camera.setMousePos(e.getX(), e.getY());
+					}
+				});
 			}
 
 			@Override
@@ -372,46 +405,10 @@ class TilesTest {
 				super.paintComponent(g);  
 
 				Graphics2D g2d = (Graphics2D) g;
-
-				g2d.translate(cameraX + (dragEndX - dragStartX), cameraY + (dragEndY - dragStartY));
-				double cameraScale = cameraMinScale + (cameraMaxScale - cameraMinScale) * (cameraZoom - cameraMinZoom) 
-													/ (cameraMaxZoom - cameraMinZoom);
-
-				g2d.scale(cameraScale, cameraScale);
-
-				final int tileWidth = 292;
-				final int tileHeight = 87;
-				Tile[][] grid = Game.map.getGrid();
-
-				for (int d = 0; d <= grid.length+grid[0].length-2; d++) {
-					for (int x = 0; x < grid.length && x <= d; x++) {
-						int y = d - x;
-						if (y < grid[x].length) {
-							Tile tile = grid[x][y];
-
-							// Draw terrain texture
-							BufferedImage terrain = Texture.getTerrainTexture(tile);
-							int posX = (y - x) * tileWidth/2 - terrain.getWidth()/2;
-							int posY = d * tileHeight - terrain.getHeight();
-							g2d.drawImage (terrain, null, posX, posY);
-
-							// Draw variation texture
-							if(tile.getVariation() != null) {
-								int voffset = 210;
-								Tile.TerrainType type = tile.getTerrainType();
-								if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
-									voffset = 180;
-								
-								BufferedImage variation = Texture.getVariationTexture (tile.getVariation());
-								posX = (y - x) * tileWidth/2 - variation.getWidth()/2;
-								posY = d * tileHeight - variation.getHeight() - voffset + Integer.min(tileHeight, variation.getHeight()/2);
-								g2d.drawImage (variation, null, posX, posY);
-							}
-						}
-					}
-				}
+				Render.render(g2d);
         	}
 		}
+
 
 	/** For testing the tiling visualization. */
 	public TilesTest() {
@@ -431,10 +428,9 @@ class TilesTest {
 
 				Random rnd = new Random(0);
 
-
 				/* Use TileMap::MapGenerator::generate() */
 				Game.players = new Player[] {new Player("Oumaji")};
-				Game.map = new TileMap(12, (int)System.currentTimeMillis(), "CONTINENTS", Game.players);
+				Game.map = new TileMap(18, (int)System.currentTimeMillis(), "CONTINENTS", Game.players);
 
 
 				frame.setLayout(null);
@@ -460,3 +456,4 @@ class TilesTest {
 		}
 	}
 }
+

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.function.*;
 
 import polytopia.graphics.Visualizable;
+import polytopia.gameplay.Player.Tech;
 
 public abstract class Consequence implements Visualizable {
 
@@ -16,44 +17,29 @@ public abstract class Consequence implements Visualizable {
 		int idx = 0;
 		while (idx < history.size()) {
 			Consequence c = history.get(idx);
-			// c.visualize();
+			c.visualize();
 			// TODO: Implement Events.
 			c.apply();
 			idx++;
 		}
 	}
-
-	// √	removal of resources (term) 
-	// √	construction of improvement 
-	// √	destruction of improvement
-	// √	restoration of resources (term)
-	// √	growth of population (term)
-	// √	loss of population (term)
-	// √	upgrade of city
-	// √	gain of stars (term)
-	// √	change of terrain 
-	// 		progess of quest (neglect)
-	// 		completion of quest (term)(neglect)
-
-	// 		discovery of tile
-	// 		spawn of unit
-	// 		movement of unit (term)
-	// 		pre-claim of village (ruins) (term)
-	// 		pre-claim of city (capital) (term)
-	// 		capture of village (ruins) 
-	// 		capture of city (capital)
-	// 		battle of unit
-	// 		heal of unit (term)
-	// 		upgrade of unit (term)
-	// 		death of unit
 }
 
 class ConseqRemoveResource extends Consequence {
 	private Resource subject;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("Removed " + subject.getResourceType().toString());
+
+		/* Note for Shaw: 
+			Fog Animation 
+			(use the FOG texture, make a pattern like this:
+				O	O
+				 \ /
+				 / \
+				O	O
+			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
+			Around 0.5s, centered at the tile.
+			NON-BLOCKING: Does not wait for the animation to complete. */
 	}
 
 	public void apply() {
@@ -86,8 +72,9 @@ class ConseqRestoreResource extends Consequence {
 	private Resource.ResourceType type;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("Restored " + type.toString());
+
+		/* Note for Shaw: 
+			No animation needed. */
 	}
 
 	public void apply() {
@@ -121,8 +108,17 @@ class ConseqBuildImprovement extends Consequence {
 	private int level;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("Built " + type.toString());
+		
+		/* Note for Shaw: 
+			Fog Animation 
+			(use the FOG texture, make a pattern like this:
+				O	O
+				 \ /
+				 / \
+				O	O
+			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
+			Around 0.5s, centered at the tile. 
+			NON-BLOCKING: Does not wait for the animation to complete.*/
 	}
 
 	public void apply() {
@@ -205,8 +201,18 @@ class ConseqRemoveImprovement extends Consequence {
 	private Improvement subject;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("Destroyed " + subject.toString());
+		
+		/* Note for Shaw: 
+			Fog Animation 
+			(use the FOG texture, make a pattern like this:
+				O	O
+				 \ /
+				 / \
+				O	O
+			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
+			Around 0.5s, centered at the tile.
+			NON-BLOCKING: Does not wait for the animation to complete. */
+
 	}
 
 	public void apply() {
@@ -294,8 +300,20 @@ class ConseqGrowPopulation extends Consequence {
 	private int value;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("growth at City " + subject.getName());
+
+		/* Note for Shaw: 
+			Population Animation
+			(use the Faction texture, like /resources/Xinxi/Xinxi.png, which is not yet added
+			to Texture.java. You need to add some entries to Texture.XML, and use getTextureByName()
+			to get that texture.
+			Make that texture move from SOURCE to SUBJECT (the tile it is on), along a curve.
+			BLOCKING: Wait for the animation to complete.
+
+			(Then) 
+			Tile Jump Animation.
+			Make the tile (that SUBJECT is on) shake (down and up) a bit. 
+			NON-BLOCKING: Does not wait for the animation to complete. */
+
 	}
 
 	public void apply() {
@@ -309,14 +327,30 @@ class ConseqGrowPopulation extends Consequence {
 	}
 
 	public void log(ArrayList<Consequence> history) {
+
+		// Calculate population growth so far
+		int population = subject.getPopulation();
+		int level = subject.getLevel();
+		for (Consequence c : history) {
+			if (c instanceof ConseqGrowPopulation) 
+				population += ((ConseqGrowPopulation)(c)).getValue();
+			if (c instanceof ConseqLosePopulation)
+				population -= ((ConseqLosePopulation)(c)).getValue();
+			
+			if (population >= level + 1) {
+				population -= level + 1;
+				level += 1;
+			}
+		}
+
 		// log this consequence
 		history.add(this);
 
 		// Can cause UpgradeCity, if population growth reaches threshold
-		int population = subject.getPopulation() + value;
-		if (population >= subject.getLevel() + 1) {
+		population += value;
+		if (population >= level + 1) {
 			// upgrade indeed
-			new ConseqUpgradeCity(subject, subject.getLevel() + 1).log(history);
+			new ConseqUpgradeCity(subject, level + 1).log(history);
 		}
 	}
 
@@ -324,6 +358,8 @@ class ConseqGrowPopulation extends Consequence {
 		//TODO: Bot use this value for making decisions
 		return 30;
 	}
+
+	public int getValue() {return this.value;}
 
 	public ConseqGrowPopulation(Tile source, City subject, int value) {
 		this.source = source;
@@ -342,8 +378,12 @@ class ConseqLosePopulation extends Consequence {
 	private int value;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("loss at City " + subject.getName());
+
+		/* Note for Shaw: 
+			Tile Jump Animation.
+			Make the tile (that SUBJECT is on) shake a bit. 
+			BLOCKING: Wait for the animation to complete. */
+
 	}
 
 	public void apply() {
@@ -359,6 +399,8 @@ class ConseqLosePopulation extends Consequence {
 		//TODO: Bot use this value for making decisions
 		return -5;
 	}
+
+	public int getValue() {return this.value;}
 
 	public ConseqLosePopulation(City subject, int value) {
 		this.subject = subject;
@@ -376,27 +418,79 @@ class ConseqUpgradeCity extends Consequence {
 	private int newLevel;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println("upgrade at City " + subject.getName());
+		//TODO: Implements Event, so that a Dialog is shown here to inform
+		//		human players about this consequence. It is even possible to
+		//		insert new consequences with an event, which can be handled 
+		//		in Consequence.apply().
 
-		//TODO: Implements Event, so that a Dialog is shown here to let user
-		//		pick a boost. Events are queued and checked when visualizing
-		//		list of consequences, and they can *insert* new consequences
-		//		into the list. This logic can be handled in Consequence.apply().
+		/* Note for Shaw: 
+			Tile Press Animation.
+			Press the tile (that SUBJECT is on) down (harder than the jump animation),
+			then make it bounce back. 
+			BLOCKING: Wait for the animation to complete. */
 	}
 
 	public void apply() {
 		// GrowPopulation has already changed city level and population.
-		return;
+
+		switch (newLevel) {
+			case 0:
+			case 1:
+				// should not happen; do nothing
+				break;
+			case 2:
+				// Add workshop
+				subject.addWorkshop();
+				break;
+			case 3:
+				break;
+			case 4:
+				Tile center = subject.getOwnerTile();
+				for (Tile tile : TileMap.getOuterRing(Game.map.getGrid(), center.getX(), center.getY())) {
+					// claim tiles that are not yet claimed
+					if (tile.getOwnerCity() == null) {
+						tile.setOwnerCity(subject);
+						subject.getTerritory().add(tile);
+					}
+				}
+				break;
+			default:
+		}
 	}
 
 	public void log(ArrayList<Consequence> history) {
 		// log this consequence
 		history.add(this);
 
-		//TODO: Implement Boost Selection. This is only for Bots, while user should
-		//		pick boosts in visualize() by Events, and the consequences are inserted
-		//		then. For now, the game works even if upgrades come with no boost.
+		// Upgrades have different effects depending on newLevel
+		switch (newLevel) {
+			case 0:
+			case 1:
+				// should not happen; do nothing
+				break;
+			case 2:
+				// Add workshop; not a consequence though
+				break;
+			case 3:
+				// Gain 5 stars
+				new ConseqGainStars(subject.getOwnerTile(), subject.getOwnerPlayer(), 5).log(history);
+				break;
+			case 4:
+				// Expand territory; can cause Discovery of Tile
+				Tile center = subject.getOwnerTile();
+				Player player = subject.getOwnerPlayer();
+				for (Tile tile : TileMap.getOuterRing(Game.map.getGrid(), center.getX(), center.getY())) {
+					// will discover the outer ring, if still undiscovered
+					if (!player.getVision().contains(tile)) {
+						new ConseqDiscoverTile(tile, player).log(history);
+					}
+						
+				}
+				break;
+			default:
+				// Get a Gaint unit
+				// new ConseqUnitSpawn
+		}
 	}
 
 	public int getReward() {
@@ -421,8 +515,13 @@ class ConseqGainStars extends Consequence {
 	private int amount;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.println(subject.getFaction().toString() + "gained stars");
+
+		/* Note for Shaw: 
+			Stars Animation:
+			Display a star texture (not included yet), and move it from SOURCE to upper
+			middle of the *screen*, along a curve, accelerating. 
+			NON-BLOCKING: Does not wait for the animation to complete. */
+
 	}
 
 	public void apply() {
@@ -430,10 +529,7 @@ class ConseqGainStars extends Consequence {
 	}
 
 	public void log(ArrayList<Consequence> history) {
-		// log this consequence
 		history.add(this);
-
-		//TODO: Quests
 	}
 
 	public int getReward() {
@@ -458,8 +554,10 @@ class ConseqChangeTerrain extends Consequence {
 	private Tile.TerrainType type;
 
 	public void visualize() {
-		//TODO: graphics and stuff
-		System.out.printf("Tile (%d, %d) chaned terrain", subject.getX(), subject.getY());
+
+		/* Note for Shaw: 
+			Fog Animation
+			NON-BLOCKING */
 	}
 
 	public void apply() {
@@ -492,5 +590,76 @@ class ConseqChangeTerrain extends Consequence {
 	@Override
 	public String toString() {
 		return String.format("[Change Terrain (%s)]", type.toString());
+	}
+}
+
+class ConseqUnlockTech extends Consequence {
+	private Tech tech;
+	private Player player;
+
+	public void visualize() {
+		/* Note for Shaw: 
+			Nothing to be done. */
+	}
+
+	public void apply() {
+		player.addTech(tech);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	public ConseqUnlockTech(Tech tech, Player player) {
+		this.tech = tech;
+		this.player = player;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[Unlock tech %s]", tech.toString());
+	}
+}
+
+class ConseqDiscoverTile extends Consequence {
+	private Tile subject;
+	private Player player;
+
+	public void visualize() {
+		/* Note for Shaw: 
+			Fog Animation
+			NON-BLOCKING */
+	}
+
+	public void apply() {
+		player.addVision(subject);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+
+		// TODO: encountering enemy unit
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	public ConseqDiscoverTile(Tile subject, Player player) {
+		this.subject = subject;
+		this.player = player;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[Discover (%d, %d)]", subject.getX(), subject.getY());
 	}
 }

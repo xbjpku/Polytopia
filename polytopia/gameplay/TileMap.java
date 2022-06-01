@@ -25,8 +25,6 @@ public class TileMap {
 	private int size;
 	private int seed; 				/* Seed for generating grid. */
 	private String mapType;			/* Type of map generation. */
-	private boolean needsRefresh; 	/* Whether the map is updated and needs refresh on screen. */
-
 
 	public TileMap(int size, int seed, String mapType, Player[] players) {
 		this.size = size;
@@ -36,14 +34,17 @@ public class TileMap {
 		this.grid = MapGenerator.generate(size, seed, MapGenerator.MapType.valueOf(mapType), players);
 	}
 
+
 	public Tile[][] getGrid() {
 		return this.grid;
 	}
 	public String getMapType() {
 		return this.mapType.toString();
 	}
+	public int getSize() {
+		return this.size;
+	}
 
-	
 	public static ArrayList<Tile> getInmostRing(Tile[][] grid, int x, int y) {
 		ArrayList<Tile> tiles = new ArrayList<Tile>();
 		for (int d = 0; d < inmostRing.length; d++) {
@@ -577,6 +578,15 @@ abstract class MapGenerator {
 			t.setVariation(capital);
 			players[i].setCapital(capital);
 			players[i].addCity(capital);
+
+			// Add adjacent 5x5 tiles into vision
+			for (int x = centers[i].getX()-2; x <= centers[i].getX()+2; x++) {
+				for (int y = centers[i].getY()-2; y <= centers[i].getY()+2; y++) {
+					if (TileMap.isValid(grid, x, y))
+						players[i].addVision(grid[x][y]);
+				}
+			}
+			
 		}
 
 		// stylize tiles based on capitals

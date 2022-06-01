@@ -22,6 +22,7 @@ public abstract class Action implements Visualizable{
 	/* Apply this ACTION. */
 	public abstract void apply(Player player);
 
+
 }
 
 /* Specific in-game actions. */
@@ -33,6 +34,7 @@ class ActionHarvestFruit extends Action {
 	public void visualize() {
 		//TODO: GUI and stuff
 		System.out.println("Harvest Fruit");
+
 	}
 
 	public boolean isVisibleTo(Player player) {
@@ -416,55 +418,6 @@ class ActionBuildPort extends Action {
 
 }
 
-class ActionClearForest extends Action {
-	
-	private Tile subject;
-
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Clear Forest");
-	}
-
-	public boolean isVisibleTo(Player player) {
-		// if PLAYER has FREE_SPIRIT tech, and SUBJECT is FOREST.
-		return subject.getTerrainType() == Tile.TerrainType.FOREST
-				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
-				&& player.getTechs().contains(Tech.FREE_SPIRIT)
-				&& subject.isOwnedBy(player);
-	}
-
-	public boolean isPerformableTo(Player player) {
-		// if PLAYER has FREE_SPIRIT tech
-		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
-		// and is FOREST.
-		return this.isVisibleTo(player) 
-				&& subject.isAccessibleTo(player);
-	}
-
-	public ArrayList<Consequence> getConsequences(Player player) {
-		
-		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Change of terrain
-		new ConseqChangeTerrain(subject, Tile.TerrainType.FIELD).log(history);
-		// Gain of stars
-		new ConseqGainStars(subject, player, 2).log(history);
-
-		return history;
-	}
-
-	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
-	}
-
-	@Override
-	public String toString() {
-		return "Clear Forest";
-	}
-
-	public ActionClearForest(Tile subject) {this.subject = subject;}
-
-}
-
 class ActionBuildSawmill extends Action {
 	
 	private Tile subject;
@@ -527,8 +480,9 @@ class ActionBuildSawmill extends Action {
 		// Construction of improvement (-> Growth of population -> Upgrade of city)
 		new ConseqBuildImprovement(subject, Improvement.ImprovementType.SAWMILL, level).log(history);
 		// Growth of population (-> Upgrade of city)
-		new ConseqGrowPopulation(subject, subject.getOwnerCity(), 
-								level * Improvement.ImprovementType.SAWMILL.getBaseValue()).log(history);
+		while (level-- > 0)
+			new ConseqGrowPopulation(subject, subject.getOwnerCity(), 
+									Improvement.ImprovementType.SAWMILL.getBaseValue()).log(history);
 
 		return history;
 	}
@@ -589,8 +543,9 @@ class ActionBuildForge extends Action {
 		// Construction of improvement (-> Growth of population -> Upgrade of city)
 		new ConseqBuildImprovement(subject, Improvement.ImprovementType.FORGE, level).log(history);
 		// Growth of population (-> Upgrade of city)
-		new ConseqGrowPopulation(subject, subject.getOwnerCity(),
-								level * Improvement.ImprovementType.FORGE.getBaseValue()).log(history);
+		while (level-- > 0)
+			new ConseqGrowPopulation(subject, subject.getOwnerCity(),
+									Improvement.ImprovementType.FORGE.getBaseValue()).log(history);
 
 		return history;
 	}
@@ -661,8 +616,9 @@ class ActionBuildWindmill extends Action {
 		// Construction of improvement (-> Growth of population -> Upgrade of city)
 		new ConseqBuildImprovement(subject, Improvement.ImprovementType.WINDMILL, level).log(history);
 		// Growth of population (-> Upgrade of city)
-		new ConseqGrowPopulation(subject, subject.getOwnerCity(), 
-								level * Improvement.ImprovementType.WINDMILL.getBaseValue()).log(history);
+		while (level-- > 0)
+			new ConseqGrowPopulation(subject, subject.getOwnerCity(), 
+									Improvement.ImprovementType.WINDMILL.getBaseValue()).log(history);
 
 		return history;
 	}
@@ -679,6 +635,279 @@ class ActionBuildWindmill extends Action {
 
 	public ActionBuildWindmill(Tile subject) {this.subject = subject;}
 
+}
+
+class ActionBuildCustomsHouse extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Customs House");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has TRADE tech, and SUBJECT is FIELD
+		if (!player.getTechs().contains(Tech.TRADE) 
+			|| !(subject.getVariation() == null || subject.getVariation() instanceof Resource)
+			|| subject.getTerrainType() != Tile.TerrainType.FIELD
+			|| !subject.isOwnedBy(player))
+			return false;
+		
+		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
+		for (Tile t : adjTile)
+			if (t.isOwnedBy(player)
+				&& t.getVariation() instanceof Improvement
+				&& ((Improvement)(t.getVariation())).getImprovementType() == Improvement.ImprovementType.PORT)
+			return true;
+		
+		return false;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has TRADE tech, and SUBJECT is FIELD, and SUBJECT has adjacent PORT
+		// and if PLAYER has at least 5 stars
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit
+		if (this.isVisibleTo(player) 
+			&& player.getStars() >= 5
+			&& subject.isAccessibleTo(player))
+			return true;
+		return false;
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		int level = 0;
+		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
+		for (Tile t : adjTile)
+			if (t.isOwnedBy(player)
+				&& t.getVariation() instanceof Improvement
+				&& ((Improvement)(t.getVariation())).getImprovementType() == Improvement.ImprovementType.PORT)
+			level++;
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Construction of improvement
+		new ConseqBuildImprovement(subject, Improvement.ImprovementType.CUSTOMS_HOUSE, level).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 5);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Build Customs House";
+	}
+
+	public ActionBuildCustomsHouse(Tile subject) {this.subject = subject;}
+
+}
+
+class ActionBuildTemple extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Temple");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has FREE_SPIRIT tech, and SUBJECT is SHORE.
+		return subject.getTerrainType() == Tile.TerrainType.FIELD
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.FREE_SPIRIT)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has FREE_SPIRIT tech, and at least 10 stars
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is FIELD.
+		return this.isVisibleTo(player) 
+				&& player.getStars() >= 10
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Construction of improvement (-> Growth of population -> Upgrade of city)
+		new ConseqBuildImprovement(subject, Improvement.ImprovementType.TEMPLE, 1).log(history);
+		// Growth of population (-> Upgrade of city)
+		new ConseqGrowPopulation(subject, subject.getOwnerCity(),
+								 Improvement.ImprovementType.TEMPLE.getBaseValue()).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 10);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Build Temple";
+	}
+
+	public ActionBuildTemple(Tile subject) {this.subject = subject;}
+}
+
+class ActionBuildForestTemple extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Forest Temple");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has SPIRITUALISM tech, and SUBJECT is FOREST.
+		return subject.getTerrainType() == Tile.TerrainType.FOREST
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.SPIRITUALISM)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has SPIRITUALISM tech, and at least 10 stars
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is FOREST.
+		return this.isVisibleTo(player) 
+				&& player.getStars() >= 10
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Construction of improvement (-> Growth of population -> Upgrade of city)
+		new ConseqBuildImprovement(subject, Improvement.ImprovementType.FOREST_TEMPLE, 1).log(history);
+		// Growth of population (-> Upgrade of city)
+		new ConseqGrowPopulation(subject, subject.getOwnerCity(),
+								 Improvement.ImprovementType.FOREST_TEMPLE.getBaseValue()).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 10);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Build Forest Temple";
+	}
+
+	public ActionBuildForestTemple(Tile subject) {this.subject = subject;}
+}
+
+class ActionBuildAquaTemple extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Aqua Temple");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has AQUATISM tech, and SUBJECT is SHORE/OCEAN.
+		return (subject.getTerrainType() == Tile.TerrainType.SHORE || subject.getTerrainType() == Tile.TerrainType.OCEAN)
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.AQUATISM)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has AQUATISM tech, and at least 10 stars
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is SHORE/OCEAN.
+		return this.isVisibleTo(player) 
+				&& player.getStars() >= 10
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Construction of improvement (-> Growth of population -> Upgrade of city)
+		new ConseqBuildImprovement(subject, Improvement.ImprovementType.AQUA_TEMPLE, 1).log(history);
+		// Growth of population (-> Upgrade of city)
+		new ConseqGrowPopulation(subject, subject.getOwnerCity(),
+								 Improvement.ImprovementType.AQUA_TEMPLE.getBaseValue()).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 10);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Build Aqua Temple";
+	}
+
+	public ActionBuildAquaTemple(Tile subject) {this.subject = subject;}
+}
+
+class ActionBuildMountainTemple extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Mountain Temple");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has MEDITATION tech, and SUBJECT is MOUNTAIN.
+		return subject.getTerrainType() == Tile.TerrainType.MOUNTAIN 
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.MEDITATION)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has MEDITATION tech, and at least 10 stars
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is MOUNTAIN.
+		return this.isVisibleTo(player) 
+				&& player.getStars() >= 10
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Construction of improvement (-> Growth of population -> Upgrade of city)
+		new ConseqBuildImprovement(subject, Improvement.ImprovementType.MOUNTAIN_TEMPLE, 1).log(history);
+		// Growth of population (-> Upgrade of city)
+		new ConseqGrowPopulation(subject, subject.getOwnerCity(),
+								 Improvement.ImprovementType.MOUNTAIN_TEMPLE.getBaseValue()).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 10);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Build Mountain Temple";
+	}
+
+	public ActionBuildMountainTemple(Tile subject) {this.subject = subject;}
 }
 
 class ActionDestroyImprovement extends Action {
@@ -729,4 +958,206 @@ class ActionDestroyImprovement extends Action {
 
 }
 
+class ActionClearForest extends Action {
+	
+	private Tile subject;
 
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Clear Forest");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has FREE_SPIRIT tech, and SUBJECT is FOREST.
+		return subject.getTerrainType() == Tile.TerrainType.FOREST
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.FREE_SPIRIT)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has FREE_SPIRIT tech
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is FOREST.
+		return this.isVisibleTo(player) 
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Change of terrain
+		new ConseqChangeTerrain(subject, Tile.TerrainType.FIELD).log(history);
+		// Gain of stars
+		new ConseqGainStars(subject, player, 2).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Clear Forest";
+	}
+
+	public ActionClearForest(Tile subject) {this.subject = subject;}
+
+}
+
+class ActionGrowForest extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Grow Forest");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has SPIRITUALISM tech, and SUBJECT is FIELD.
+		return subject.getTerrainType() == Tile.TerrainType.FIELD
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.SPIRITUALISM)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has SPIRITUALISM tech
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is FIELD.
+		return this.isVisibleTo(player) 
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Change of terrain
+		new ConseqChangeTerrain(subject, Tile.TerrainType.FOREST).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 5);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Grow Forest";
+	}
+
+	public ActionGrowForest(Tile subject) {this.subject = subject;}
+
+}
+
+class ActionBurnForest extends Action {
+	
+	private Tile subject;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Burn Forest");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		// if PLAYER has CHIVALRY tech, and SUBJECT is FOREST.
+		return subject.getTerrainType() == Tile.TerrainType.FOREST
+				&& (subject.getVariation() == null || subject.getVariation() instanceof Resource)
+				&& player.getTechs().contains(Tech.CHIVALRY)
+				&& subject.isOwnedBy(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		// if PLAYER has CHIVALRY tech
+		// and if SUBJECT is owned by PLAYER, and is not occupied by enemy unit, 
+		// and is FOREST.
+		return this.isVisibleTo(player) 
+				&& subject.isAccessibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Change of terrain
+		new ConseqChangeTerrain(subject, Tile.TerrainType.FIELD).log(history);
+		// Add CROP
+		new ConseqRestoreResource(subject, Resource.ResourceType.CROP).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - 5);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Burn Forest";
+	}
+
+	public ActionBurnForest(Tile subject) {this.subject = subject;}
+}
+
+class ActionUnlockTech extends Action {
+	
+	private Tech tech;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("Unlock " + tech.toString());
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return tech.isUnlockableTo(player);
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+		
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		new ConseqUnlockTech(tech, player).log(history);
+		
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - tech.getCost(player));
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Unlock " + tech.toString();
+	}
+
+	public ActionUnlockTech(Tech tech) {this.tech = tech;}
+}
+
+
+// Disband units
+// (death of units -> gain of stars)
+
+// Train unit
+// (spawn unit)
+// Capture village
+// (capture village -> discover tiles)
+// Capture city
+// (capture city -> discover tiles)
+// Explore ruins
+// (random)
+
+// TurnStart
+// (gain stars -> unit rest)
+// TurnEnd
+// ()
+
+// new conseq: spawn unit; capture city; capture village; unit rest

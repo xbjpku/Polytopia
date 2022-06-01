@@ -38,6 +38,10 @@ public abstract class Texture {
 		});
 	}
 
+	public static BufferedImage getTextureByName(String name) {
+		return texturePool.get(name);
+	}
+
 	public static BufferedImage getTerrainTexture(Tile tile) {
 		String terrainDesc = tile.getStyle() == null ? tile.getTerrainType().toString() :
 							String.join("-", tile.getTerrainType().toString(), tile.getStyle().toString());

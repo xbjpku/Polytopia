@@ -1,6 +1,7 @@
 package polytopia.gameplay;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class Player {
 
@@ -33,9 +34,8 @@ public class Player {
 		MATHEMATICS (3, FORESTRY),
 
 		RIDING (1, null),
-		ROADS (2, RIDING),
+		TRADE (2, RIDING),
 		FREE_SPIRIT (2, RIDING),
-		TRADE (3, ROADS),
 		CHIVALRY (3, FREE_SPIRIT);
 		
 		int rank;
@@ -47,15 +47,21 @@ public class Player {
 		}
 
 		public int getCost(Player player) {
-			return 4 + player.getCities().size() * this.rank;
+			int cost = 4 + player.getCities().size() * this.rank;
+			if (player.getTechs().contains(Tech.PHILOSOPHY))
+				cost = (int)(Math.ceil(cost * 2.0/3));
+			return cost;
 		}
 
 		public boolean isUnlockableTo(Player player) {
+			if (player.getTechs().contains(this))
+				return false;
+
 			if (this.prerequisite == null || player.getTechs().contains(this.prerequisite)) {
 				if (this.getCost(player) <= player.getStars())
 					return true;
 			}
-			return true;
+			return false;
 		}
 
 		public static ArrayList<Tech> getUnlockableTechs(Player player) {
@@ -77,6 +83,7 @@ public class Player {
 	private ArrayList<Tech> techs;
 	private City capital = null;
 	private ArrayList<City> cities = null;
+	private HashSet<Tile> vision = null;
 
 	public Player(String factionName) {
 		this.faction = Faction.valueOf(factionName);
@@ -89,6 +96,7 @@ public class Player {
 			case Oumaji: this.techs.add(Tech.RIDING); break;
 		}
 		this.cities = new ArrayList<City>();
+		this.vision = new HashSet<Tile>();
 	}
 
 	public Faction getFaction() {return this.faction;}
@@ -98,10 +106,11 @@ public class Player {
 	public ArrayList<Tech> getTechs() {return this.techs;}
 	public City getCapital() {return this.capital;}
 	public ArrayList<City> getCities() {return this.cities;}
+	public HashSet<Tile> getVision() {return this.vision;}
 
 	public void setCapital(City city) {this.capital = city;}
 	public void addCity(City city) {this.cities.add(city);}
-
+	public void addVision(Tile tile) {this.vision.add(tile);}
 	public void addTech(Tech tech) {this.techs.add(tech);}
 	
 }

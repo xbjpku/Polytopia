@@ -85,7 +85,8 @@ class Improvement implements TileVariation {
 
 	public enum ImprovementType {
 		FARM (2), MINE (2), PORT (2), LUMBER_HUT (1), 
-		WINDMILL (1), FORGE (2), SAWMILL (1), CUSTOMS_HOUSE (0);
+		WINDMILL (1), FORGE (2), SAWMILL (1), CUSTOMS_HOUSE (0), 
+		TEMPLE (1), FOREST_TEMPLE (1), AQUA_TEMPLE (1), MOUNTAIN_TEMPLE (1);
 
 		private int baseValue;
 		ImprovementType(int baseValue) {this.baseValue = baseValue;}
@@ -109,71 +110,4 @@ class Improvement implements TileVariation {
 	public String toString() {
 		return this.type.toString();
 	}
-}
-
-class City implements TileVariation {
-
-	private Tile ownerTile;
-	private Player ownerPlayer;
-	private Action[] actions;
-
-	public Tile getOwnerTile() {return this.ownerTile;}
-	public Player getOwnerPlayer() {return this.ownerPlayer;}
-	public Faction getStyle() {
-		return ownerPlayer.getFaction();
-	}
-
-	public Action[] getActions() {return this.actions;}
-	public City(Tile[][] grid, Tile ownerTile, Player ownerPlayer) {
-		this.ownerTile = ownerTile;
-		this.ownerPlayer = ownerPlayer;
-		this.actions = new Action[] {/* TODO: Train units. */};
-
-		this.name = RandomName.roll();
-		this.level = 1;
-		this.population = 0;
-		this.hasWall = false;
-		this.hasWorkshop = false;
-
-		ArrayList<Tile> adjTiles = TileMap.getInnerRing(grid, ownerTile.getX(), ownerTile.getY());
-		this.territory = new ArrayList<Tile>();
-		ownerTile.setOwnerCity(this);
-		this.territory.add(ownerTile);
-		for (Tile tile : adjTiles)
-			if (tile.getOwnerCity() == null) {
-				tile.setOwnerCity(this);
-				this.territory.add(tile);
-			}
-
-		this.units = new ArrayList<Unit>();
-	}
-
-
-	private String name;
-	private int level;
-	private int population;
-	private boolean hasWall;
-	private boolean hasWorkshop;
-	private ArrayList<Tile> territory;
-	private ArrayList<Unit> units;
-
-	public String getName() {return this.name;}
-	public int getLevel() {return this.level;}
-	public int getPopulation() {return this.population;}
-	public boolean hasWall() {return this.hasWall;}
-	public boolean hasWorkshop() {return this.hasWorkshop;}
-	public ArrayList<Tile> getTerritory() {return this.territory;}
-	public ArrayList<Unit> getUnits() {return this.units;}
-
-	public void setLevel(int level) {this.level = level;}
-	public void setPopulation(int population) {this.population = population;}
-	public void addWall() {this.hasWall = true;}
-	public void addWorkshop() {this.hasWorkshop = true;}
-
-
-	@Override
-	public String toString() {
-		return "CITY";
-	}
-
 }
