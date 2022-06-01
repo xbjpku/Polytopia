@@ -59,7 +59,7 @@ public class Unit implements Visualizable {
 	public Tile position;
 	private TileMap map;
 	// for upgrade
-	private int killNumber;
+	public int killNumber;
 	private int level;
 
 	// Selection response
@@ -285,14 +285,16 @@ public class Unit implements Visualizable {
 			position = enemyTile;
 			enemyTile.setUnit(this);
 		}
-		// upgrade every time kills
-		this.killNumber ++;
-		if(killNumber == 3) {
-			killNumber = 0;
-			level++;
-			HpMax += 5;
-			Hp = HpMax;
-		}
+	}
+
+	public void Upgrade() {
+		if(killNumber < 3 || recover != 1 || movable != 1 || attack != 1)
+			return;
+		killNumber = 0;
+		level++;
+		HpMax += 5;
+		Hp = HpMax;
+		recover = movable = attack = 0;
 	}
 	// Automatically for units that does nothing
 	public boolean recoverable() {return getHp() < getHpMax();}
@@ -426,6 +428,8 @@ public class Unit implements Visualizable {
 		int combined = movable << 2 | attack << 1 | recover;
 		switch(combined) {
 			case 7:
+				if(killNumber >= 3)
+					legalActions.add(new ActionUpgrade(this));
 				if(getHp() < getHpMax())
 					legalActions.add(new ActionRecover(this));
 				if(Heal)
@@ -449,6 +453,10 @@ public class Unit implements Visualizable {
 				break;
 		}
 		return legalActions;
+	}
+
+	public void newTurn() {
+		recover = movable = attack = 1;
 	}
 
 
