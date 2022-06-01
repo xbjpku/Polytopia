@@ -95,6 +95,13 @@ public class Tile implements Visualizable {
 		return false;
 	}
 
+	public boolean hasTemple() {
+		return ((Improvement)getVariation()).getImprovementType() == Improvement.ImprovementType.TEMPLE
+				|| ((Improvement)getVariation()).getImprovementType() == Improvement.ImprovementType.FORESTTEMPLE
+				|| ((Improvement)getVariation()).getImprovementType() == Improvement.ImprovementType.AQUATEMPLE
+				|| ((Improvement)getVariation()).getImprovementType() == Improvement.ImprovementType.MOUNTAINTEMPLE;
+	}
+
 	public boolean isAccessibleTo(Player player) {
 		if (this.isOwnedBy(player)) {
 			if (unit == null || unit.getOwnerPlayer() == player)
