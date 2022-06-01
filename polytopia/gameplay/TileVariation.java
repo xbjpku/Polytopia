@@ -14,9 +14,7 @@ public interface TileVariation {
 }
 
 class Resource implements TileVariation {
-	
 	private Tile ownerTile;
-
 	public Tile getOwnerTile() {return this.ownerTile;}
 	public Faction getStyle() {
 		if (type == ResourceType.FRUIT || type == ResourceType.ANIMAL)
@@ -85,7 +83,8 @@ class Improvement implements TileVariation {
 
 	public enum ImprovementType {
 		FARM (2), MINE (2), PORT (2), LUMBER_HUT (1), 
-		WINDMILL (1), FORGE (2), SAWMILL (1), CUSTOMS_HOUSE (0);
+		WINDMILL (1), FORGE (2), SAWMILL (1), CUSTOMS_HOUSE (0),
+		TEMPLE(3), FORESTTEMPLE(3), AQUATEMPLE(3), MOUNTAINTEMPLE(3);
 
 		private int baseValue;
 		ImprovementType(int baseValue) {this.baseValue = baseValue;}
