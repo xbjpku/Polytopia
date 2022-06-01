@@ -420,7 +420,6 @@ public class Unit implements Visualizable {
 					return ownerPlayer.toString() + "BATTLESHIP";
 			}
 		}
-
 		switch(type) {
 			case ARCHER:
 				return ownerPlayer.toString() + "ARCHER";
