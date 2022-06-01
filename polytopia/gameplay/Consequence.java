@@ -498,6 +498,38 @@ class ConseqChangeTerrain extends Consequence {
 /*
 The following are the consequences for units
 * */
+class ConseqUpgrade extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: graphics and stuff
+		System.out.printf("(%s) upgrades", unit.toString());
+	}
+
+	public void apply() {
+		unit.Upgrade();
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 0;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s upgrades]", unit.toString());
+	}
+
+	public ConseqUpgrade(Unit unit) {
+		this.unit = unit;
+	}
+}
+
 class ConseqMove extends Consequence {
 	private Unit unit;
 	private Tile tile;
