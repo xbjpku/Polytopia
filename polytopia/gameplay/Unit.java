@@ -6,6 +6,7 @@ import javax.swing.plaf.metal.OceanTheme;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Queue;
 
 public class Unit implements Visualizable {
 
@@ -194,10 +195,38 @@ public class Unit implements Visualizable {
 
 	public ArrayList<Tile> getMovable() {
 		ArrayList<Tile> destination = new ArrayList<>();
-		for(int i = 1; i <= getMoveRange(); i++)
-			for(Tile tile: getSurroundings(i))
-				if(!tile.hasAlly(ownerPlayer) && !tile.hasEnemy(ownerPlayer))
-					destination.add(tile);
+		Queue<Tile> q = null;
+		q.add(position);
+		int [] dx = new int[]{0, 1, 0, -1};
+		int [] dy = new int[]{-1, 0, 1, 0};
+		while(!q.isEmpty()) {
+			Tile temp = q.remove();
+			for(int i = 0; i < 4; i++) {
+				int x = temp.getX() + dx[i];
+				int y = temp.getY() + dy[i];
+				if(0 > x || x > map.GetSize() || 0 > y || y > map.GetSize())
+					continue;
+				if(map.getDistance(temp, map.getGrid()[x][y]) > getMoveRange())
+					continue;
+				if(map.getGrid()[x][y].hasEnemy(ownerPlayer) || map.getGrid()[x][y].hasAlly(ownerPlayer))
+					continue;
+				if(destination.contains(map.getGrid()[x][y]))
+					continue;
+				if(position.getTerrainType() != Tile.TerrainType.SHORE
+						&& position.getTerrainType() != Tile.TerrainType.OCEAN) {
+					// land
+					if(map.getGrid()[x][y].getTerrainType() != Tile.TerrainType.SHORE
+							&& map.getGrid()[x][y].getTerrainType() != Tile.TerrainType.OCEAN) {
+						q.add(map.getGrid()[x][y]);
+						destination.add(map.getGrid()[x][y]);
+					} else if(((Improvement)map.getGrid()[x][y].getVariation()).getImprovementType()
+							== Improvement.ImprovementType.PORT) {
+						q.add(map.getGrid()[x][y]);
+						destination.add(map.getGrid()[x][y]);
+					}
+				}
+			}
+		}
 		return destination;
 	}
 
