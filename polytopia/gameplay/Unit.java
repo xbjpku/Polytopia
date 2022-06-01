@@ -57,6 +57,9 @@ public class Unit implements Visualizable {
 	public int recover = 1;
 	public Tile position;
 	private TileMap map;
+	// for upgrade
+	private int killNumber;
+	private int level;
 
 	// Selection response
 	public void visualize(/* GUI component */) {
@@ -71,6 +74,8 @@ public class Unit implements Visualizable {
 		this.ownerPlayer = ownerPlayer_;
 		this.ownerCity = ownerCity_;
 		this.type = type_;
+		this.killNumber = 0;
+		this.level = 0;
 		switch (type) {
 			case ARCHER: // 	dash	fortify
 				Hp = HpMax = 10;
@@ -250,6 +255,14 @@ public class Unit implements Visualizable {
 			visualizeMove(position, enemyTile);
 			position = enemyTile;
 			enemyTile.setUnit(this);
+		}
+		// upgrade every time kills
+		this.killNumber ++;
+		if(killNumber == 3) {
+			killNumber = 0;
+			level++;
+			HpMax += 5;
+			Hp = HpMax;
 		}
 	}
 	// Automatically for units that does nothing
