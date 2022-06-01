@@ -731,6 +731,44 @@ class ActionDestroyImprovement extends Action {
 /*
 The following are the actions for units
 * */
+class ActionUpgrade extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		//TODO: GUI and stuff
+		System.out.println("ActionUpgrade");
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.recover == 1 && unit.attack == 1 && unit.movable == 1 && unit.killNumber == 3;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+		// Upgrade
+		new ConseqUpgrade(unit).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " upgrades";
+	}
+
+	public ActionUpgrade(Unit unit) {this.unit = unit;}
+}
+
 class ActionMove extends Action {
 
 	private Unit unit;
