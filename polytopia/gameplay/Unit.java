@@ -59,7 +59,7 @@ public class Unit implements Visualizable {
 	public Tile position;
 	private TileMap map;
 	// for upgrade
-	private int killNumber;
+	public int killNumber;
 	private int level;
 
 	// Selection response
@@ -69,7 +69,7 @@ public class Unit implements Visualizable {
 
 	public Player getOwnerPlayer() {return this.ownerPlayer;}
 	public City getOwnerCity() {return this.ownerCity;}
-/*
+
 	Unit(TileMap map_, Player ownerPlayer_, City ownerCity_, CharType type_) {
 		this.map = map_;
 		this.ownerPlayer = ownerPlayer_;
@@ -83,6 +83,18 @@ public class Unit implements Visualizable {
 				Cost = 3; 	AttackPower = 2; 	DefendPower = 1;	MoveRange = 1;	AttackRange = 2;
 				Dash = true;	Fortify = true;	Escape = false;	Heal = false;	Convert = false;	Scout = false;
 				break;
+				/*
+			case BATTLESHIP: // dash	scout(S)
+				Hp = HpMax = 0;
+				Cost = 15; 	AttackPower = 3; 	DefendPower = 3;	MoveRange = 3;	AttackRange = 3;
+				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = true;
+				break;
+			case BOAT: // 		-
+				Hp = HpMax = 0;
+				Cost = 0; 	AttackPower = 0;	DefendPower = 1;	MoveRange = 2;	AttackRange = 0;
+				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = false;
+				break;
+				 */
 			case CATAPULT: // 	-
 				Hp = HpMax = 10;
 				Cost = 8; 	AttackPower = 4;	DefendPower = 0;	MoveRange = 1;	AttackRange = 3;
@@ -103,6 +115,13 @@ public class Unit implements Visualizable {
 				Cost = 3; 	AttackPower = 2;	DefendPower = 1;	MoveRange = 2;	AttackRange = 1;
 				Dash = true;	Fortify = true;	Escape = true;	Heal = false;	Convert = false;	Scout = false;
 				break;
+				/*
+			case SHIP: //		dash
+				Hp = HpMax = 0;
+				Cost = 5; 	AttackPower = 2;	DefendPower = 2;	MoveRange = 3;	AttackRange = 2;
+				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = false;
+				break;
+				 */
 			case SWORDSMAN: //	dash	fortify
 				Hp = HpMax = 15;
 				Cost = 5; 	AttackPower = 3;	DefendPower = 3;	MoveRange = 1;	AttackRange = 1;
@@ -118,7 +137,9 @@ public class Unit implements Visualizable {
 				Dash = Fortify =	Escape = Heal = Convert = Scout = false;
 		}
 	}
-	public void visualizeAttack(Tile from, Tile to) {}
+	public void visualizeAttack(Tile from, Tile to) {
+		/* TODO: GUI Visualize Attack, Move,  */
+	}
 	public void visualizeMove(Tile from, Tile to) {}
 	public void visualizeHeal(Tile at) {}
 	public void visualizeConvert(Tile at) {}
@@ -183,7 +204,7 @@ public class Unit implements Visualizable {
 			for(int i = 0; i < 4; i++) {
 				int x = temp.getX() + dx[i];
 				int y = temp.getY() + dy[i];
-				if(0 > x || x >= map.getSize() || 0 > y || y >= map.getSize())
+				if(0 > x || x > map.getSize() || 0 > y || y > map.getSize())
 					continue;
 				if(map.getDistance(temp, map.getGrid()[x][y]) > getMoveRange())
 					continue;
@@ -264,14 +285,16 @@ public class Unit implements Visualizable {
 			position = enemyTile;
 			enemyTile.setUnit(this);
 		}
-		// upgrade every time kills
-		this.killNumber ++;
-		if(killNumber == 3) {
-			killNumber = 0;
-			level++;
-			HpMax += 5;
-			Hp = HpMax;
-		}
+	}
+
+	public void Upgrade() {
+		if(killNumber < 3 || recover != 1 || movable != 1 || attack != 1)
+			return;
+		killNumber = 0;
+		level++;
+		HpMax += 5;
+		Hp = HpMax;
+		recover = movable = attack = 0;
 	}
 	// Automatically for units that does nothing
 	public boolean recoverable() {return getHp() < getHpMax();}
@@ -405,6 +428,8 @@ public class Unit implements Visualizable {
 		int combined = movable << 2 | attack << 1 | recover;
 		switch(combined) {
 			case 7:
+				if(killNumber >= 3)
+					legalActions.add(new ActionUpgrade(this));
 				if(getHp() < getHpMax())
 					legalActions.add(new ActionRecover(this));
 				if(Heal)
@@ -428,6 +453,10 @@ public class Unit implements Visualizable {
 				break;
 		}
 		return legalActions;
+	}
+
+	public void newTurn() {
+		recover = movable = attack = 1;
 	}
 
 
@@ -461,5 +490,5 @@ public class Unit implements Visualizable {
 		}
 		return "None";
 	}
-*/
+
 }

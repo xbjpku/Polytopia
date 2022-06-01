@@ -113,6 +113,14 @@ public class Tile implements Visualizable {
 		return false;
 	}
 
+	public boolean hasTemple() {
+		return this.variation instanceof Improvement
+				&& (((Improvement)(this.variation)).getImprovementType() == Improvement.ImprovementType.TEMPLE
+				|| ((Improvement)(this.variation)).getImprovementType() == Improvement.ImprovementType.FOREST_TEMPLE
+				|| ((Improvement)(this.variation)).getImprovementType() == Improvement.ImprovementType.AQUA_TEMPLE
+				|| ((Improvement)(this.variation)).getImprovementType() == Improvement.ImprovementType.MOUNTAIN_TEMPLE);
+	}
+
 
 
 	public static void main(String[] args) {
@@ -310,7 +318,7 @@ public class Tile implements Visualizable {
 			}
 
 			// refresh the graphics
-			display.update();
+			// display.update();
 		}
 	}
 }
@@ -346,33 +354,40 @@ class TilesTest {
 						}
 						else {
 							Tile tile = Game.map.getGrid()[y][x];
-							Render.setSelcected(tile);
-							repaint();
-							System.out.printf ("(%d, %d), %s, with %s\n",
-										tile.getX(), tile.getY(), 
-										tile.getTerrainType().toString(),
-										tile.getVariation() != null ?
-										tile.getVariation().toString() : "nothing");
-							if (tile.getVariation() instanceof Improvement) {
-								Improvement improvement = (Improvement) (tile.getVariation());
-								System.out.printf ("%s at level %d\n", improvement.toString(), improvement.getLevel());
-							}
-							else if (tile.getVariation() instanceof City) {
-								City city = (City)(tile.getVariation());
-								System.out.printf ("City %s at (%d, %d)\n", city.getName(), 
-													tile.getX(), tile.getY());
-								System.out.printf ("Level: %d\t Population: %d\n", city.getLevel(), city.getPopulation());
-
-								System.out.println ("Territory:");
-								ArrayList<Tile> territory = city.getTerritory();
-								for (Tile t : territory) {
-									System.out.printf ("(%d, %d), %s, with %s\n",
-														t.getX(), t.getY(), 
-														t.getTerrainType().toString(),
-														t.getVariation() instanceof TileVariation ?
-														t.getVariation().toString() : "nothing");
+							if (Game.getHumanPlayer().getVision().contains(tile)) {
+								Render.setSelcected(tile);
+								//repaint();
+								System.out.printf ("(%d, %d), %s, with %s\n",
+											tile.getX(), tile.getY(), 
+											tile.getTerrainType().toString(),
+											tile.getVariation() != null ?
+											tile.getVariation().toString() : "nothing");
+								if (tile.getVariation() instanceof Improvement) {
+									Improvement improvement = (Improvement) (tile.getVariation());
+									System.out.printf ("%s at level %d\n", improvement.toString(), improvement.getLevel());
 								}
-								System.out.println();
+								else if (tile.getVariation() instanceof City) {
+									City city = (City)(tile.getVariation());
+									System.out.printf ("City %s at (%d, %d)\n", city.getName(), 
+														tile.getX(), tile.getY());
+									System.out.printf ("Level: %d\t Population: %d\n", city.getLevel(), city.getPopulation());
+
+									System.out.println ("Territory:");
+									ArrayList<Tile> territory = city.getTerritory();
+									for (Tile t : territory) {
+										System.out.printf ("(%d, %d), %s, with %s\n",
+															t.getX(), t.getY(), 
+															t.getTerrainType().toString(),
+															t.getVariation() instanceof TileVariation ?
+															t.getVariation().toString() : "nothing");
+									}
+									System.out.println();
+								}
+							}
+							else {
+								Render.setSelcected(null);
+								//repaint();
+								System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
 							}
 						}
 					}
@@ -381,7 +396,7 @@ class TilesTest {
 				addMouseWheelListener(new MouseAdapter() {
             		public void mouseWheelMoved(MouseWheelEvent e) {
 						Render.camera.changeScale(e.getWheelRotation());
-						repaint();
+						//repaint();
             		}
         		});
 
@@ -389,7 +404,7 @@ class TilesTest {
         		addMouseMotionListener(new MouseAdapter() {
             		public void mouseDragged(MouseEvent e) {
 						Render.camera.changePos(e.getX(), e.getY());
-						repaint();
+						//repaint();
             		}
        			});
 				addMouseMotionListener(new MouseAdapter() {
@@ -454,6 +469,11 @@ class TilesTest {
 				catch (InterruptedException e) {}
 			}
 		}
+
+		int delay = 15; //milliseconds
+  		new Timer(delay, (ActionEvent evt) -> {
+			  this.update();
+		  }).start();
 	}
 }
 

@@ -5,6 +5,7 @@ import java.awt.geom.*;
 import java.awt.image.*;
 import java.util.ArrayList;
 
+import polytopia.gameplay.Player;
 import polytopia.gameplay.Tile;
 import polytopia.gameplay.TileVariation;
 import polytopia.gameplay.City;
@@ -34,6 +35,17 @@ public class Render {
                 int y = d - x;
                 if (y < grid[x].length) {
                     Tile tile = grid[y][x];
+                    Player humanPlayer = Game.getHumanPlayer();
+
+                    if (!humanPlayer.getVision().contains(tile)) {
+                        // Draw FOG instead
+                        BufferedImage fog = Texture.getTextureByName("FOG");
+                        Point2D point = camera.transPoint(new Point2D.Double((double)x, (double)y));
+                        Tile.TerrainType type = tile.getTerrainType();
+
+                        g2d.drawImage (fog, null, (int)point.getX() - fog.getWidth() / 2, (int)point.getY() - fog.getHeight());
+                        continue;
+                    }
 
                     // Draw terrain texture
                     BufferedImage terrain = Texture.getTerrainTexture(tile);
