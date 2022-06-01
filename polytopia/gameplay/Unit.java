@@ -208,15 +208,16 @@ public class Unit implements Visualizable {
 	public float getDefenseBonus(Unit s) {
 		float bonus = 1;
 		// Aquatism for water, Archery for forests and Meditation for mountains are defensive terrains
-		//if((Improvement)s.position.getVariation() == )
-
+		if(position.isOwnedBy(ownerPlayer) && position.hasTemple()) {
+			bonus *= 1.2F;
+		}
 		// Fortify
 		if(s.Fortify && s.position.getOwnerCity().getOwnerTile() == s.position) {
-			bonus *= 1.25F;
+			bonus *= 1.4F;
 		}
 		// Has Wall
 		if(s.position.getOwnerCity().getOwnerTile() == s.position && s.position.getOwnerCity().hasWall()) {
-			bonus *= 1.25F;
+			bonus *= 1.2F;
 		}
 		return bonus;
 	}
@@ -420,6 +421,7 @@ public class Unit implements Visualizable {
 					return ownerPlayer.toString() + "BATTLESHIP";
 			}
 		}
+
 		switch(type) {
 			case ARCHER:
 				return ownerPlayer.toString() + "ARCHER";
