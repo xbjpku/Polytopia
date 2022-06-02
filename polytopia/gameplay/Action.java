@@ -1142,37 +1142,37 @@ class ActionUnlockTech extends Action {
 	public ActionUnlockTech(Tech tech) {this.tech = tech;}
 }
 
-/*
+
+
+/** 
 The following are the actions for units
-* */
-class ActionUpgrade extends Action {
+*/
+class ActionUnitUpgrade extends Action {
 
 	private Unit unit;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionUpgrade");
+
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return unit.recover == 1 && unit.attack == 1 && unit.movable == 1 && unit.killNumber == 3;
+		//return unit.recover == 1 && unit.attack == 1 && unit.movable == 1 && unit.killNumber == 3;
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		//return this.isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Upgrade
-		new ConseqUpgrade(unit).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1180,39 +1180,37 @@ class ActionUpgrade extends Action {
 		return unit.toString() + " upgrades";
 	}
 
-	public ActionUpgrade(Unit unit) {this.unit = unit;}
+	public ActionUnitUpgrade(Unit unit) {this.unit = unit;}
 }
 
-class ActionMove extends Action {
+class ActionUnitMove extends Action {
 
 	private Unit unit;
 	private Tile destination;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionMove");
+
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return (unit.recover == 1) && (unit.movable != -1) && ((unit.movable == 1 && unit.attack == 1)
-				|| (unit.movable == 0 && unit.attack == 0 && unit.Escape));
+		//return (unit.recover == 1) && (unit.movable != -1) && ((unit.movable == 1 && unit.attack == 1)
+		//		|| (unit.movable == 0 && unit.attack == 0 && unit.Escape));
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		//return this.isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Carry or land
-		new ConseqMove(unit, destination).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1220,39 +1218,37 @@ class ActionMove extends Action {
 		return unit.toString() + " move to " + destination.toString();
 	}
 
-	public ActionMove(Unit unit, Tile destination) {this.unit = unit; this.destination = destination;}
+	public ActionUnitMove(Unit unit, Tile destination) {this.unit = unit; this.destination = destination;}
 }
 
-class ActionAttack extends Action {
+class ActionUnitAttack extends Action {
 
 	private Unit unit;
 	private Unit enemy;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionAttack");
+		
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return unit.recover == 1 && unit.attack == 1 && unit.searchEnemy().contains(enemy)
-				&& ((unit.movable == 0 && unit.Dash) || (unit.movable == 1));
+		//return unit.recover == 1 && unit.attack == 1 && unit.searchEnemy().contains(enemy)
+		//		&& ((unit.movable == 0 && unit.Dash) || (unit.movable == 1));
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return isVisibleTo(player);
+		//return isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Lost in health or death
-		new ConseqAttackedOrDeath(unit, enemy).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1260,37 +1256,35 @@ class ActionAttack extends Action {
 		return unit.toString() + " attack " + enemy.toString();
 	}
 
-	public ActionAttack(Unit unit,Unit enemy) {this.unit = unit; this.enemy = enemy;}
+	public ActionUnitAttack(Unit unit,Unit enemy) {this.unit = unit; this.enemy = enemy;}
 }
 
-class ActionRecover extends Action {
+class ActionUnitRecover extends Action {
 
 	private Unit unit;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionRecover");
+		
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return (unit.recoverable()) && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		//return (unit.recoverable()) && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		//return this.isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Recover
-		new ConseqRecover(unit).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1298,37 +1292,35 @@ class ActionRecover extends Action {
 		return unit.toString() + " recovers";
 	}
 
-	public ActionRecover(Unit unit) {this.unit = unit;}
+	public ActionUnitRecover(Unit unit) {this.unit = unit;}
 }
 
-class ActionHeal extends Action {
+class ActionUnitHeal extends Action {
 
 	private Unit unit;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionHeal");
+		
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return unit.Heal && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		//return unit.Heal && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		//return this.isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Heal
-		new ConseqHeal(unit).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1336,37 +1328,36 @@ class ActionHeal extends Action {
 		return unit.toString() + " heals";
 	}
 
-	public ActionHeal(Unit unit) {this.unit = unit;}
+	public ActionUnitHeal(Unit unit) {this.unit = unit;}
 }
 
-class ActionConvert extends Action {
+class ActionUnitConvert extends Action {
 
 	private Unit unit;
+	private Player newOwner;
 
 	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("ActionConvert");
+
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return unit.Convert && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		//return unit.Convert && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
+		return true;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		//return this.isVisibleTo(player);
+		return true;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
-		// Convert
-		new ConseqConvert(unit).log(history);
-
 		return history;
 	}
 
 	public void apply(Player player) {
-		Consequence.apply (this.getConsequences(player));
+		//Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1374,7 +1365,7 @@ class ActionConvert extends Action {
 		return unit.toString() + " converts";
 	}
 
-	public ActionConvert(Unit unit) {this.unit = unit;}
+	public ActionUnitConvert(Unit unit, Player newOwner) {this.unit = unit; this.newOwner = newOwner;}
 }
 
 

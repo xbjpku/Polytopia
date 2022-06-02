@@ -75,6 +75,17 @@ public class TileMap {
 		return tiles;
 	}
 
+	public static ArrayList<Tile> getSurroundings(Tile[][] grid, int x, int y, int range) {
+		ArrayList<Tile> surroundings = new ArrayList<>();
+		for(int i=x-range; i<=x+range; i++) {
+			for(int j=y-range; j <= y+range; j++) {
+				if(TileMap.isValid (grid, i, j))
+					surroundings.add(grid[i][j]);
+			}
+		}
+		return surroundings;
+	}
+
 	public static boolean isValid(Tile[][] grid, int x, int y) {
 		return x >= 0 && y >= 0 && x < grid.length && y < grid[0].length;
 	}

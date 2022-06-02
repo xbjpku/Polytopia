@@ -73,11 +73,12 @@ public class Tile implements Visualizable {
 	public City getOwnerCity() {return this.ownerCity;}
 	public Unit getUnit() {return this.unit;}
 	public void setUnit(Unit unit) {this.unit = unit;}
+
 	public boolean hasEnemy(Player player) {
-		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() != player;
+		return this.unit != null && this.unit.getOwnerPlayer() != player;
 	}
 	public boolean hasAlly(Player player) {
-		return this.unit.getOwnerPlayer() != null && this.unit.getOwnerPlayer() == player;
+		return this.unit != null && this.unit.getOwnerPlayer() != player;
 	}
 
 	public Action[] getActions() {return this.actions;}

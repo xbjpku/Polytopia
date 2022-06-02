@@ -664,9 +664,12 @@ class ConseqDiscoverTile extends Consequence {
 	}
 }
 
+
+
 /*
 The following are the consequences for units
 * */
+/*
 class ConseqUpgrade extends Consequence {
 	private Unit unit;
 
@@ -1064,4 +1067,4 @@ class ConseqConvert extends Consequence {
 	public ConseqConvert(Unit unit) {
 		this.unit = unit;
 	}
-}
+}*/

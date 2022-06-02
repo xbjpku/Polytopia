@@ -1,230 +1,211 @@
 package polytopia.gameplay;
 
 import polytopia.graphics.Visualizable;
+import polytopia.gameplay.Player.Tech;
 
-import javax.swing.plaf.metal.OceanTheme;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Queue;
+import java.util.LinkedList;
 
 public class Unit implements Visualizable {
 
-	private Player ownerPlayer;
-	private City ownerCity;
-
-	public enum CharType {
-		NONE,
-		ARCHER, BATTLESHIP, BOAT, CATAPULT, DEFENDER, MINDBENDER, RIDER, SHIP, SWORDSMAN, WARRIOR;
+	public enum Skill {
+		CARRY, FLOAT, DASH, FORTIFY, ESCAPE, HEAL, CONVERT, SCOUT;
 	}
-	public enum ShellType {
-		NONE,
-		SHIP, BOAT, BATTLESHIP;
+
+	public enum UnitType {
+		NONE (0, 0, 0, 0, 0, 0, null),
+		ARCHER (3, 10, 2, 1, 1, 2, new Skill[]{Skill.DASH, Skill.FORTIFY}), 
+		BATTLESHIP (0, 0, 4, 3, 3, 2, new Skill[]{Skill.DASH, Skill.CARRY, Skill.SCOUT, Skill.FLOAT}),
+		BOAT (0, 0, 1, 1, 2, 2, new Skill[]{Skill.CARRY, Skill.DASH, Skill.FLOAT}),
+		CATAPULT (8, 10, 4, 0, 1, 3, new Skill[]{}),
+		DEFENDER (3, 15, 1, 3, 1, 1, new Skill[]{Skill.FORTIFY}), 
+		MINDBENDER (5, 10, 0, 1, 1, 1, new Skill[]{Skill.HEAL, Skill.CONVERT}), 
+		RIDER (3, 10, 2, 1, 2, 1, new Skill[]{Skill.DASH, Skill.FORTIFY, Skill.ESCAPE}), 
+		SHIP (0, 0, 2, 2, 3, 2, new Skill[]{Skill.DASH, Skill.CARRY, Skill.FLOAT}),
+		SWORDSMAN (5, 15, 3, 3, 1, 1, new Skill[]{Skill.DASH, Skill.FORTIFY}), 
+		WARRIOR (2, 10, 2, 2, 1, 1, new Skill[]{Skill.DASH, Skill.FORTIFY});
+
+		public final int cost;
+		public final int maxHealth;
+		public final int attack;
+		public final int defense;
+		public final int movement;
+		public final int range;
+		public final Skill[] skills; 
+
+		UnitType (int cost, int maxHealth, int attack, int defense, int movement, int range,
+				Skill[] skills) {
+			this.cost = cost;
+			this.maxHealth = maxHealth;
+			this.attack = attack;
+			this.defense = defense;
+			this.movement = movement;
+			this.range = range;
+			this.skills = skills;
+		}
 	}
 	// Attributes
-	private CharType type = CharType.NONE;
-	private ShellType shellType = ShellType.NONE;
-	private CharType carryType = CharType.NONE;
-	//
-	private int HpMax;
-	private int shellHPM;
-	private int Hp;
-	private int shellHp;
-	//
-	private int Cost;
-	private int shellCost;
-	//
-	private int AttackPower;
-	private int shellATP;
-	//
-	private int DefendPower;
-	private int shellDFP;
-	//
-	private int MoveRange;
-	private int shellMR;
-	//
-	private int AttackRange;
-	private int shellAR;
-	// Skills
-	public boolean Dash;
-	public boolean Fortify;
-	public boolean Escape;
-	public boolean Heal;
-	public boolean Convert;
-	public boolean Scout;
+	private int health;
+	private UnitType type;
+	private Unit carryUnit = null;
+	private Player ownerPlayer = null;
+	private City ownerCity = null;
 
-	public int movable = 1;
-	public int attack = 1;
-	public int recover = 1;
-	public Tile position;
-	private TileMap map;
-	// for upgrade
-	public int killNumber;
-	private int level;
+	private Tile position = null;
+
+	private boolean movable = false;
+	private boolean attackable = false;
+	
+	private int kills = 0;
+	private boolean veteran = false;
 
 	// Selection response
-	public void visualize(/* GUI component */) {
+	public void visualize() {
 		System.out.println("Unit selected");
 	}
 
+	public Unit(UnitType type) {
+		this.type = type;
+		this.health = type.maxHealth;
+	}
+
 	public Player getOwnerPlayer() {return this.ownerPlayer;}
+	public void setOwnerPlayer(Player player) {this.ownerPlayer = player;}
 	public City getOwnerCity() {return this.ownerCity;}
+	public void setOwnerCity(City city) {this.ownerCity = city;}
+	public UnitType getType() {return this.type;}
+	public Unit getCarryUnit() {return this.carryUnit;}
+	public void setCarryUnit(Unit unit) {this.carryUnit = unit;}
+	public Tile getPosition() {return this.position;}
+	public void setPosition(Tile position) {this.position = position;}
 
-	Unit(TileMap map_, Player ownerPlayer_, City ownerCity_, CharType type_) {
-		this.map = map_;
-		this.ownerPlayer = ownerPlayer_;
-		this.ownerCity = ownerCity_;
-		this.type = type_;
-		this.killNumber = 0;
-		this.level = 0;
-		switch (type) {
-			case ARCHER: // 	dash	fortify
-				Hp = HpMax = 10;
-				Cost = 3; 	AttackPower = 2; 	DefendPower = 1;	MoveRange = 1;	AttackRange = 2;
-				Dash = true;	Fortify = true;	Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-				/*
-			case BATTLESHIP: // dash	scout(S)
-				Hp = HpMax = 0;
-				Cost = 15; 	AttackPower = 3; 	DefendPower = 3;	MoveRange = 3;	AttackRange = 3;
-				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = true;
-				break;
-			case BOAT: // 		-
-				Hp = HpMax = 0;
-				Cost = 0; 	AttackPower = 0;	DefendPower = 1;	MoveRange = 2;	AttackRange = 0;
-				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-				 */
-			case CATAPULT: // 	-
-				Hp = HpMax = 10;
-				Cost = 8; 	AttackPower = 4;	DefendPower = 0;	MoveRange = 1;	AttackRange = 3;
-				Dash = false;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-			case DEFENDER: // 	fortify
-				Hp = HpMax = 15;
-				Cost = 3; 	AttackPower = 1;	DefendPower = 3;	MoveRange = 1;	AttackRange = 1;
-				Dash = false;	Fortify = true;	Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-			case MINDBENDER: //	heal	convert		(detect)
-				Hp = HpMax = 10;
-				Cost = 5; 	AttackPower = 0;	DefendPower = 1;	MoveRange = 1;	AttackRange = 1;
-				Dash = false;	Fortify = false;Escape = false;	Heal = true;	Convert = true;		Scout = false;
-				break;
-			case RIDER: // 		dash	escape		fortify
-				Hp = HpMax = 10;
-				Cost = 3; 	AttackPower = 2;	DefendPower = 1;	MoveRange = 2;	AttackRange = 1;
-				Dash = true;	Fortify = true;	Escape = true;	Heal = false;	Convert = false;	Scout = false;
-				break;
-				/*
-			case SHIP: //		dash
-				Hp = HpMax = 0;
-				Cost = 5; 	AttackPower = 2;	DefendPower = 2;	MoveRange = 3;	AttackRange = 2;
-				Dash = true;	Fortify = false;Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-				 */
-			case SWORDSMAN: //	dash	fortify
-				Hp = HpMax = 15;
-				Cost = 5; 	AttackPower = 3;	DefendPower = 3;	MoveRange = 1;	AttackRange = 1;
-				Dash = true;	Fortify = true;	Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-			case WARRIOR: //	dash	fortify
-				Hp = HpMax = 10;
-				Cost = 2; 	AttackPower = 2;	DefendPower = 2;	MoveRange = 1;	AttackRange = 1;
-				Dash = true;	Fortify = true;	Escape = false;	Heal = false;	Convert = false;	Scout = false;
-				break;
-			case NONE:
-				Hp = HpMax = Cost = AttackPower = DefendPower = MoveRange = AttackRange = 0;
-				Dash = Fortify =	Escape = Heal = Convert = Scout = false;
+	public boolean isMovable() {return this.movable;}
+	public boolean isAttackable() {return this.attackable;}
+	public void setMovable(boolean movable) {this.movable = movable;}
+	public void setAttackable(boolean attackable) {this.attackable = attackable;}
+
+	public int getKills() {return this.kills;}
+	public void setKills(int kills) {this.kills = kills;}
+	public boolean isVeteran() {return this.veteran;}
+	public void setVeteran() {this.veteran = true;}
+
+	public int getHealth() {return this.health;}
+	public void setHealth(int health) {this.health = health;}
+
+	public Skill[] getSkills() {
+		return this.type.skills;
+	}
+	public boolean hasSkill(Skill skill) {
+		for (Skill skill_ : this.type.skills) {
+			if (skill_ == skill)
+				return true;
 		}
+		return false;
 	}
-	public void visualizeAttack(Tile from, Tile to) {
-		/* TODO: GUI Visualize Attack, Move,  */
-	}
-	public void visualizeMove(Tile from, Tile to) {}
-	public void visualizeHeal(Tile at) {}
-	public void visualizeConvert(Tile at) {}
 
-	public int getHpMax() {
-		if(shellType == ShellType.NONE) return HpMax;
-		return shellHPM;
-	}
-	public int getHp() {
-		if(shellType == ShellType.NONE) return Hp;
-		return shellHp;
-	}
-	public void setHp(int x) {
-		if(shellType == ShellType.NONE) {Hp = x;return;}
-		shellHp = x;
+	public int getMaxHealth() {
+		return this.type.maxHealth;
 	}
 	public int getCost() {
-		if(shellType == ShellType.NONE) return Cost;
-		return shellCost;
+		if (carryUnit != null)
+			return carryUnit.type.cost;
+		return type.cost;
 	}
-	public int getAttackPower() {
-		if(shellType == ShellType.NONE) return AttackPower;
-		return shellATP;
+	public int getAttack() {
+		return this.type.attack;
 	}
-	public int getDefendPower() {
-		if(shellType == ShellType.NONE) return DefendPower;
-		return shellDFP;
+	public int getDefense() {
+		return this.type.defense;
 	}
-	public int getAttackRange() {
-		if(shellType == ShellType.NONE) return AttackRange;
-		return shellAR;
+	public int getMovement() {
+		return this.type.movement;
 	}
-	public int getMoveRange() {
-		if(shellType == ShellType.NONE) return MoveRange;
-		return shellMR;
-	}
-	public ArrayList<Tile> getSurroundings(int layer) {
-		ArrayList<Tile> surroundings = new ArrayList<>();
-		for(int i = 0; i < map.getSize(); i++)
-			for(int j = 0; j < map.getSize(); j++)
-				if(map.getDistance(position, map.getGrid()[i][j]) == layer)
-					// Navy then all accessibility, NonNavy then landscape and port in range are accessible
-					if(shellType != ShellType.NONE || (shellType == ShellType.NONE && (map.getGrid()[i][j].getTerrainType() == Tile.TerrainType.FIELD
-							|| map.getGrid()[i][j].getTerrainType() == Tile.TerrainType.FOREST
-							|| (map.getGrid()[i][j].getTerrainType() == Tile.TerrainType.MOUNTAIN
-										&& ownerPlayer.getTechs().contains(Player.Tech.CLIMBING)
-							|| ((Improvement)map.getGrid()[i][j].getVariation()).getImprovementType()
-								== Improvement.ImprovementType.PORT))))
-						if(!map.getGrid()[i][j].hasAlly(ownerPlayer))
-							surroundings.add(map.getGrid()[i][j]);
-		return surroundings;
+	public int getRange() {
+		return this.type.range;
 	}
 
-	public ArrayList<Tile> getMovable() {
+	public ArrayList<Tile> getMovableTiles() {
 		ArrayList<Tile> destination = new ArrayList<>();
-		Queue<Tile> q = null;
-		q.add(position);
+
+		class State {
+			public Tile tile;
+			public int move;
+			public State(Tile tile, int move) {
+				this.tile = tile;
+				this.move = move;
+			}
+		}
+
 		int [] dx = new int[]{0, 1, 0, -1};
 		int [] dy = new int[]{-1, 0, 1, 0};
+
+		LinkedList<State> q = new LinkedList<State>();
+		q.add(new State(this.position, this.getMovement()));
+		Tile[][] grid = Game.map.getGrid();
 		while(!q.isEmpty()) {
-			Tile temp = q.remove();
+			State state = q.remove();
+			Tile tile = state.tile;
+			int move = state.move;
+
+			if (!destination.contains(tile))
+				destination.add(tile);
+
+			// out of moves
+			if (move <= 0)
+				continue;
+			
+			boolean inControl = false;
 			for(int i = 0; i < 4; i++) {
-				int x = temp.getX() + dx[i];
-				int y = temp.getY() + dy[i];
-				if(0 > x || x > map.getSize() || 0 > y || y > map.getSize())
+				int x = tile.getX() + dx[i];
+				int y = tile.getY() + dy[i];
+				if (TileMap.isValid(grid, x, y) && grid[x][y].hasEnemy(ownerPlayer))
+					inControl = true;
+			}
+			// in enemy control zone
+			if (inControl)
+				continue;
+
+			for(int i = 0; i < 4; i++) {
+				int x = tile.getX() + dx[i];
+				int y = tile.getY() + dy[i];
+				if(!TileMap.isValid(grid, x, y))
 					continue;
-				if(map.getDistance(temp, map.getGrid()[x][y]) > getMoveRange())
+				if(grid[x][y].getUnit() != null)
 					continue;
-				if(map.getGrid()[x][y].hasEnemy(ownerPlayer) || map.getGrid()[x][y].hasAlly(ownerPlayer))
+
+				// Need CLIMBING to go on mountains
+				if (grid[x][y].getTerrainType() == Tile.TerrainType.MOUNTAIN 
+					&& !ownerPlayer.getTechs().contains(Tech.CLIMBING))
 					continue;
-				if(destination.contains(map.getGrid()[x][y]))
-					continue;
-				if(position.getTerrainType() != Tile.TerrainType.SHORE
-						&& position.getTerrainType() != Tile.TerrainType.OCEAN) {
-					// land
-					if(map.getGrid()[x][y].getTerrainType() != Tile.TerrainType.SHORE
-							&& map.getGrid()[x][y].getTerrainType() != Tile.TerrainType.OCEAN) {
-						q.add(map.getGrid()[x][y]);
-						destination.add(map.getGrid()[x][y]);
-					} else if(((Improvement)map.getGrid()[x][y].getVariation()).getImprovementType()
-							== Improvement.ImprovementType.PORT) {
-						q.add(map.getGrid()[x][y]);
-						destination.add(map.getGrid()[x][y]);
+				
+				if (this.carryUnit == null) {
+					// Land unit
+					if (grid[x][y].getTerrainType() == Tile.TerrainType.SHORE
+						|| grid[x][y].getTerrainType() == Tile.TerrainType.OCEAN)
+						// cannot move on SHORE/OCEAN, unless with PORT on
+						if (!(grid[x][y].getVariation() instanceof Improvement)
+							|| ((Improvement)(grid[x][y].getVariation())).getImprovementType() != Improvement.ImprovementType.PORT)
+								continue;
+					
+					switch (grid[x][y].getTerrainType()) {
+						case FIELD: q.add(new State(grid[x][y], move-1)); break;
+						case FOREST: q.add(new State(grid[x][y], move-2)); break;
+						case MOUNTAIN: q.add(new State(grid[x][y], move-2)); break;
+						case SHORE: q.add(new State(grid[x][y], 0)); break;
+						case OCEAN: q.add(new State(grid[x][y], 0)); break;
 					}
 				}
+				else {
+					// Navy unit
+					switch (grid[x][y].getTerrainType()) {
+						case SHORE: q.add(new State(grid[x][y], move-1)); break;
+						case OCEAN: q.add(new State(grid[x][y], move-1)); break;
+						default: q.add(new State(grid[x][y], 0));
+					}
+				}
+
 			}
 		}
 		return destination;
@@ -232,48 +213,50 @@ public class Unit implements Visualizable {
 
 	public ArrayList<Tile> searchEnemy() {
 		ArrayList<Tile> accessibleEnemy = new ArrayList<>();
-		for(int i = 1; i <= getAttackRange(); i++)
-			for(Tile tile: getSurroundings(i))
-				if (tile.hasEnemy(ownerPlayer))
-					accessibleEnemy.add(tile);
+		for(Tile tile: TileMap.getSurroundings(Game.map.getGrid(), position.getX(), position.getY(), getRange()))
+			if (tile.hasEnemy(ownerPlayer))
+				accessibleEnemy.add(tile);
+			
 		return accessibleEnemy;
 	}
 
-	public float getDefenseBonus(Unit s) {
+	public float getDefenseBonus() {
 		float bonus = 1;
 		// Aquatism for water, Archery for forests and Meditation for mountains are defensive terrains
 		if(position.isOwnedBy(ownerPlayer) && position.hasTemple()) {
 			bonus *= 1.2F;
 		}
-		// Fortify
-		if(s.Fortify && s.position.getOwnerCity().getOwnerTile() == s.position) {
-			bonus *= 1.4F;
-		}
-		// Has Wall
-		if(s.position.getOwnerCity().getOwnerTile() == s.position && s.position.getOwnerCity().hasWall()) {
-			bonus *= 1.2F;
-		}
+
+		// In a friendly city
+		if (position.getVariation() instanceof City
+			&& ((City)(position.getVariation())).getOwnerPlayer() == ownerPlayer)
+		{
+			// Fortify
+			if(this.hasSkill(Skill.FORTIFY)) 
+				bonus *= 1.4F;
+			// Has Wall
+			if(((City)(position.getVariation())).hasWall())
+				bonus *= 1.2F;
+		} 
+		
 		return bonus;
 	}
 
-	public int getRecoveryRate(Unit s) {
+	public int getRecoveryRate() {
 		int rate = 1;
-		// In capital range
-		if(position.getOwnerCity() == ownerCity) {
+		// On friendly territory
+		if(position.isOwnedBy(ownerPlayer)) 
 			rate = 2;
-		}
 		return rate;
 	}
 
+/*
 	public void retaliation(Tile enemyTile, int defendResult) {
-		if(enemyTile.getUnit().searchEnemy().contains(position)) {
-			visualizeAttack(enemyTile, position);
-			if(defendResult >= getHp()) {
-				position.setUnit(null);
-				this.type = CharType.NONE;
-				return;
-			} else {setHp(getHp() - defendResult);}
-		}
+		if(defendResult >= getHp()) {
+			position.setUnit(null);
+			this.type = CharType.NONE;
+			return;
+		} else {setHp(getHp() - defendResult);}
 	}
 
 	public void kill(Tile enemyTile) {
@@ -287,8 +270,9 @@ public class Unit implements Visualizable {
 		}
 	}
 
+
 	public void Upgrade() {
-		if(killNumber < 3 || recover != 1 || movable != 1 || attack != 1)
+		if(isVeteran || killNumber < 3)
 			return;
 		killNumber = 0;
 		level++;
@@ -307,6 +291,7 @@ public class Unit implements Visualizable {
 		setHp(Math.max(getHpMax(), getHp() + 2 * getRecoveryRate(this)));
 		visualizeHeal(position);
 	}
+
 	// Move to accessible tiles and set
 	public void Move(Tile targetTile) {
 		// Exit if not movable
@@ -326,6 +311,7 @@ public class Unit implements Visualizable {
 		// Carry();
 		// Land();
 	}
+
 	// Attack on accessible enemies and set
 	public void Attack(Tile enemyTile) {
 		// Exit if already act and cannot dash
@@ -422,73 +408,38 @@ public class Unit implements Visualizable {
 					attack = 0;
 				}
 	}
+*/
 
 	public ArrayList<Action> getActions() {
 		ArrayList<Action> legalActions = new ArrayList<>();
-		int combined = movable << 2 | attack << 1 | recover;
-		switch(combined) {
-			case 7:
-				if(killNumber >= 3)
-					legalActions.add(new ActionUpgrade(this));
-				if(getHp() < getHpMax())
-					legalActions.add(new ActionRecover(this));
-				if(Heal)
-					legalActions.add(new ActionHeal(this));
-				if(Convert)
-					legalActions.add(new ActionConvert(this));
-				for(Tile tile: getMovable())
-					legalActions.add(new ActionMove(this, tile));
+
+		if (attackable) {
+			if(!veteran && kills >= 3)
+				legalActions.add(new ActionUnitUpgrade(this));
+			if(getHealth() < getMaxHealth())
+				legalActions.add(new ActionUnitRecover(this));
+			if(hasSkill(Skill.HEAL))
+				legalActions.add(new ActionUnitHeal(this));
+			if(hasSkill(Skill.CONVERT)) {
 				for(Tile tile: searchEnemy())
-					legalActions.add(new ActionAttack(this, tile.getUnit()));
-				break;
-			case 1:
-				if(Escape)
-					for(Tile tile: getMovable())
-						legalActions.add(new ActionMove(this, tile));
-				break;
-			case 3:
-				if(Dash)
-					for(Tile tile: searchEnemy())
-						legalActions.add(new ActionAttack(this, tile.getUnit()));
-				break;
+					legalActions.add(new ActionUnitConvert(tile.getUnit(), ownerPlayer));
+			}
+			else {
+				for(Tile tile: searchEnemy())
+					legalActions.add(new ActionUnitAttack(this, tile.getUnit()));
+			}
 		}
+		if (movable) {
+			for(Tile tile: getMovableTiles())
+					legalActions.add(new ActionUnitMove(this, tile));
+		}
+
 		return legalActions;
 	}
 
-	public void newTurn() {
-		recover = movable = attack = 1;
-	}
-
-
+	@Override
 	public String toString() {
-		if(shellType != ShellType.NONE) {
-			switch(shellType) {
-				case BOAT:
-					return ownerPlayer.toString() + "BOAT";
-				case SHIP:
-					return ownerPlayer.toString() + "SHIP";
-				case BATTLESHIP:
-					return ownerPlayer.toString() + "BATTLESHIP";
-			}
-		}
-
-		switch(type) {
-			case ARCHER:
-				return ownerPlayer.toString() + "ARCHER";
-			case CATAPULT:
-				return ownerPlayer.toString() + "CATAPULT";
-			case DEFENDER:
-				return ownerPlayer.toString() + "DEFENDER";
-			case MINDBENDER:
-				return ownerPlayer.toString() + "MINDBENDER";
-			case RIDER:
-				return ownerPlayer.toString() + "RIDER";
-			case SWORDSMAN:
-				return ownerPlayer.toString() + "SWORDSMAN";
-			case WARRIOR:
-				return ownerPlayer.toString() + "WARRIOR";
-		}
-		return "None";
+		return String.join("-", ownerPlayer.getFaction().toString(), type.toString());
 	}
 
 }
