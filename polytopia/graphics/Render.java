@@ -65,6 +65,17 @@ public class Render {
                         BufferedImage variation = Texture.getVariationTexture (tile.getVariation());
                         g2d.drawImage (variation, null, (int)point.getX() - variation.getWidth()/2, (int)point.getY() - variation.getHeight() - voffset + Integer.min(tileHeight, variation.getHeight()/2));
                     }
+
+                    // TEMPORARY: Draw Unit
+                    if(tile.getUnit() != null) {
+                        int voffset = 210;
+                        if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
+                            voffset = 180;
+                        
+                        BufferedImage unit = Texture.getTextureByName (tile.getUnit().toString());
+                        if (unit != null)
+                            g2d.drawImage (unit, null, (int)point.getX() - unit.getWidth()/2, (int)point.getY() - unit.getHeight() - voffset + Integer.min(tileHeight, unit.getHeight()/2));
+                    }
                 }
             }
         }

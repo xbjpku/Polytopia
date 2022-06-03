@@ -22,6 +22,8 @@ public abstract class Action implements Visualizable{
 	/* Apply this ACTION. */
 	public abstract void apply(Player player);
 
+	protected int cost = 0;
+	public int getCost() {return cost;}
 
 }
 
@@ -72,7 +74,10 @@ class ActionHarvestFruit extends Action {
 		return "Harvest Fruit";
 	}
 
-	public ActionHarvestFruit(Resource subject) {this.subject = subject;}
+	public ActionHarvestFruit(Resource subject) {
+		this.subject = subject;
+		this.cost = 2;
+	}
 }
 
 class ActionFishing extends Action {
@@ -119,7 +124,10 @@ class ActionFishing extends Action {
 		return "Fishing";
 	}
 
-	public ActionFishing(Resource subject) {this.subject = subject;}
+	public ActionFishing(Resource subject) {
+		this.subject = subject;
+		this.cost = 2;
+	}
 
 }
 
@@ -167,7 +175,10 @@ class ActionHunting extends Action {
 		return "Hunting";
 	}
 
-	public ActionHunting(Resource subject) {this.subject = subject;}
+	public ActionHunting(Resource subject) {
+		this.subject = subject;
+		this.cost = 2;
+	}
 
 }
 
@@ -216,7 +227,10 @@ class ActionFarming extends Action {
 		return "Farming";
 	}
 
-	public ActionFarming(Resource subject) {this.subject = subject;}
+	public ActionFarming(Resource subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -265,7 +279,10 @@ class ActionMining extends Action {
 		return "Mining";
 	}
 
-	public ActionMining(Resource subject) {this.subject = subject;}
+	public ActionMining(Resource subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -311,7 +328,10 @@ class ActionWhaling extends Action {
 		return "Whaling";
 	}
 
-	public ActionWhaling(Resource subject) {this.subject = subject;}
+	public ActionWhaling(Resource subject) {
+		this.subject = subject;
+		this.cost = 0;
+	}
 }
 
 class ActionBuildLumberHut extends Action {
@@ -362,7 +382,10 @@ class ActionBuildLumberHut extends Action {
 		return "Build Lumber Hut";
 	}
 
-	public ActionBuildLumberHut(Tile subject) {this.subject = subject;}
+	public ActionBuildLumberHut(Tile subject) {
+		this.subject = subject;
+		this.cost = 2;
+	}
 
 }
 
@@ -414,7 +437,10 @@ class ActionBuildPort extends Action {
 		return "Build Port";
 	}
 
-	public ActionBuildPort(Tile subject) {this.subject = subject;}
+	public ActionBuildPort(Tile subject) {
+		this.subject = subject;
+		this.cost = 10;
+	}
 
 }
 
@@ -487,7 +513,10 @@ class ActionBuildSawmill extends Action {
 		return history;
 	}
 
-	public ActionBuildSawmill(Tile subject) {this.subject = subject;}
+	public ActionBuildSawmill(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -560,7 +589,10 @@ class ActionBuildForge extends Action {
 		return "Build Forge";
 	}
 
-	public ActionBuildForge(Tile subject) {this.subject = subject;}
+	public ActionBuildForge(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -633,7 +665,10 @@ class ActionBuildWindmill extends Action {
 		return "Build Windmill";
 	}
 
-	public ActionBuildWindmill(Tile subject) {this.subject = subject;}
+	public ActionBuildWindmill(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -702,7 +737,10 @@ class ActionBuildCustomsHouse extends Action {
 		return "Build Customs House";
 	}
 
-	public ActionBuildCustomsHouse(Tile subject) {this.subject = subject;}
+	public ActionBuildCustomsHouse(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -754,7 +792,10 @@ class ActionBuildTemple extends Action {
 		return "Build Temple";
 	}
 
-	public ActionBuildTemple(Tile subject) {this.subject = subject;}
+	public ActionBuildTemple(Tile subject) {
+		this.subject = subject;
+		this.cost = 10;
+	}
 }
 
 class ActionBuildForestTemple extends Action {
@@ -805,7 +846,10 @@ class ActionBuildForestTemple extends Action {
 		return "Build Forest Temple";
 	}
 
-	public ActionBuildForestTemple(Tile subject) {this.subject = subject;}
+	public ActionBuildForestTemple(Tile subject) {
+		this.subject = subject;
+		this.cost = 10;
+	}
 }
 
 class ActionBuildAquaTemple extends Action {
@@ -856,7 +900,10 @@ class ActionBuildAquaTemple extends Action {
 		return "Build Aqua Temple";
 	}
 
-	public ActionBuildAquaTemple(Tile subject) {this.subject = subject;}
+	public ActionBuildAquaTemple(Tile subject) {
+		this.subject = subject;
+		this.cost = 10;
+	}
 }
 
 class ActionBuildMountainTemple extends Action {
@@ -907,7 +954,10 @@ class ActionBuildMountainTemple extends Action {
 		return "Build Mountain Temple";
 	}
 
-	public ActionBuildMountainTemple(Tile subject) {this.subject = subject;}
+	public ActionBuildMountainTemple(Tile subject) {
+		this.subject = subject;
+		this.cost = 10;
+	}
 }
 
 class ActionDestroyImprovement extends Action {
@@ -954,7 +1004,10 @@ class ActionDestroyImprovement extends Action {
 		return "Destroy " + subject.toString();
 	}
 
-	public ActionDestroyImprovement(Improvement subject) {this.subject = subject;}
+	public ActionDestroyImprovement(Improvement subject) {
+		this.subject = subject;
+		this.cost = 0;
+	}
 
 }
 
@@ -1003,7 +1056,10 @@ class ActionClearForest extends Action {
 		return "Clear Forest";
 	}
 
-	public ActionClearForest(Tile subject) {this.subject = subject;}
+	public ActionClearForest(Tile subject) {
+		this.subject = subject;
+		this.cost = 0;
+	}
 
 }
 
@@ -1051,7 +1107,10 @@ class ActionGrowForest extends Action {
 		return "Grow Forest";
 	}
 
-	public ActionGrowForest(Tile subject) {this.subject = subject;}
+	public ActionGrowForest(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 
 }
 
@@ -1101,7 +1160,10 @@ class ActionBurnForest extends Action {
 		return "Burn Forest";
 	}
 
-	public ActionBurnForest(Tile subject) {this.subject = subject;}
+	public ActionBurnForest(Tile subject) {
+		this.subject = subject;
+		this.cost = 5;
+	}
 }
 
 class ActionUnlockTech extends Action {
@@ -1139,9 +1201,12 @@ class ActionUnlockTech extends Action {
 		return "Unlock " + tech.toString();
 	}
 
-	public ActionUnlockTech(Tech tech) {this.tech = tech;}
+	public ActionUnlockTech(Tech tech) {
+		this.tech = tech;
+		this.cost = 0;
+		// must use Tech.getCost(player) instead
+	}
 }
-
 
 
 /** 
@@ -1156,23 +1221,24 @@ class ActionUnitUpgrade extends Action {
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return unit.recover == 1 && unit.attack == 1 && unit.movable == 1 && unit.killNumber == 3;
-		return true;
+		return unit.getOwnerPlayer() == player;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return this.isVisibleTo(player);
-		return true;
+		return this.isVisibleTo(player);
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUnitUpgrade(unit).log(history);
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1193,29 +1259,31 @@ class ActionUnitMove extends Action {
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return (unit.recover == 1) && (unit.movable != -1) && ((unit.movable == 1 && unit.attack == 1)
-		//		|| (unit.movable == 0 && unit.attack == 0 && unit.Escape));
-		return true;
+		return unit.getOwnerPlayer() == player
+				&& unit.getPosition() != destination
+				&& player.getVision().contains(destination);
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return this.isVisibleTo(player);
-		return true;
+		return this.isVisibleTo(player);
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUnitMove (unit, destination).log(history);
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
 	public String toString() {
-		return unit.toString() + " move to " + destination.toString();
+		return unit.toString() + " moves";
 	}
 
 	public ActionUnitMove(Unit unit, Tile destination) {this.unit = unit; this.destination = destination;}
@@ -1231,24 +1299,25 @@ class ActionUnitAttack extends Action {
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return unit.recover == 1 && unit.attack == 1 && unit.searchEnemy().contains(enemy)
-		//		&& ((unit.movable == 0 && unit.Dash) || (unit.movable == 1));
-		return true;
+		return unit.getOwnerPlayer() == player
+				&& player.getVision().contains(enemy.getPosition());
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return isVisibleTo(player);
-		return true;
+		return isVisibleTo(player);
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUnitAttack(unit, enemy).log(history);
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1268,23 +1337,27 @@ class ActionUnitRecover extends Action {
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return (unit.recoverable()) && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
-		return true;
+		return unit.getOwnerPlayer() == player;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return this.isVisibleTo(player);
-		return true;
+		return this.isVisibleTo(player)
+				&& unit.isAttackable() && unit.isMovable();
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUnitRecover(unit,  2*unit.getRecoveryRate()).log(history);
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
+		unit.setAttackable(false);
+		unit.setMovable(false);
 	}
 
 	@Override
@@ -1304,23 +1377,29 @@ class ActionUnitHeal extends Action {
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return unit.Heal && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
-		return true;
+		return unit.getOwnerPlayer() == player;
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return this.isVisibleTo(player);
-		return true;
+		return this.isVisibleTo(player)
+				&& unit.isAttackable();
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		Tile center = unit.getPosition();
+		for (Tile tile : TileMap.getInnerRing(Game.map.getGrid(), center.getX(), center.getY())) {
+			if (tile.hasAlly(player))
+				new ConseqUnitRecover(tile.getUnit(), 4).log(history);
+		}
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1334,30 +1413,32 @@ class ActionUnitHeal extends Action {
 class ActionUnitConvert extends Action {
 
 	private Unit unit;
-	private Player newOwner;
+	private Unit enemy;
 
 	public void visualize() {
 
 	}
 
 	public boolean isVisibleTo(Player player) {
-		//return unit.Convert && (unit.attack == 1) && (unit.movable == 1) && (unit.recover == 1);
-		return true;
+		return unit.getOwnerPlayer() == player
+				&& player.getVision().contains(enemy.getPosition());
 	}
 
 	public boolean isPerformableTo(Player player) {
-		//return this.isVisibleTo(player);
-		return true;
+		return this.isVisibleTo(player);
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUnitConvert(unit, enemy).log(history);
+
 		return history;
 	}
 
 	public void apply(Player player) {
-		//Consequence.apply (this.getConsequences(player));
+		Consequence.apply (this.getConsequences(player));
 	}
 
 	@Override
@@ -1365,15 +1446,138 @@ class ActionUnitConvert extends Action {
 		return unit.toString() + " converts";
 	}
 
-	public ActionUnitConvert(Unit unit, Player newOwner) {this.unit = unit; this.newOwner = newOwner;}
+	public ActionUnitConvert(Unit unit, Unit enemy) {this.unit = unit; this.enemy = enemy;}
+}
+
+class ActionUnitDisband extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.getOwnerPlayer() == player;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player)
+				&& unit.isAttackable() && unit.isMovable();
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		// Unit death -> Gain stars
+		Tile position = unit.getPosition();
+
+		new ConseqUnitDeath(unit, unit.getOwnerPlayer()).log(history);
+		new ConseqGainStars(position, player, unit.getCost() / 2).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " disbands";
+	}
+
+	public ActionUnitDisband(Unit unit) {this.unit = unit;}
+}
+
+class ActionEndTurn extends Action {
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return player == Game.currentPlayer;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player);
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		for (Unit unit : player.getUnits()) {
+			new ConseqUnitRest(unit).log(history);
+		}
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+		// TODO: switch to other player
+	}
+
+	@Override
+	public String toString() {
+		return "End Turn";
+	}
+
+	public ActionEndTurn() {}
 }
 
 
-// Disband units
-// (death of units -> gain of stars)
+class ActionTrainUnit extends Action {
 
-// Train unit
-// (spawn unit)
+	private City city;
+	private Unit.UnitType type;
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return city.getOwnerPlayer() == player
+				&& (type.prerequisite == null || player.getTechs().contains(type.prerequisite));
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player)
+				&& type.cost <= player.getStars()
+				&& city.getOwnerTile().getUnit() == null;
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		Tile position = city.getOwnerTile();
+		new ConseqUnitSpawn(position, type, player, city).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		player.setStars(player.getStars() - type.cost);
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return city.toString() + " trains " + type.toString();
+	}
+
+	public ActionTrainUnit(City city, Unit.UnitType type) {
+		this.city = city;
+		this.type = type;
+		this.cost = type.cost;
+	}
+}
+
+
 // Capture village
 // (capture village -> discover tiles)
 // Capture city
@@ -1382,8 +1586,6 @@ class ActionUnitConvert extends Action {
 // (random)
 
 // TurnStart
-// (gain stars -> unit rest)
-// TurnEnd
-// ()
+// (gain stars)
 
-// new conseq: spawn unit; capture city; capture village; unit rest
+// new conseq: capture city; capture village; 

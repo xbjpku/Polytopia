@@ -10,33 +10,33 @@ public class Player {
 	}
 
 	public enum Tech {
-		ORGANIZATION (1, null),
-		SHIELDS (2, ORGANIZATION),
-		FARMING (2, ORGANIZATION),
-		CONSTRUCTION (3, FARMING),
+		ORGANIZATION (1, null),  		// fruit (early)
+		SHIELDS (2, ORGANIZATION),		// enemy (early)
+		FARMING (2, ORGANIZATION),		// crop (early)
+		CONSTRUCTION (3, FARMING),		// farm 
 
-		CLIMBING (1, null),
-		MEDITATION (2, CLIMBING),
-		MINING (2, CLIMBING),
-		PHILOSOPHY (3, MEDITATION),
-		SMITHERY (3, MINING),
+		CLIMBING (1, null),				// mountain (early)
+		MEDITATION (2, CLIMBING),		// mountain
+		MINING (2, CLIMBING),			// metal (early)
+		PHILOSOPHY (3, MEDITATION),		
+		SMITHERY (3, MINING),			// enemy
 
-		FISHING (1, null),
-		SAILING (2, FISHING),
-		WHALING (2, FISHING),
-		NAVIGATION (3, SAILING),
-		AQUATISM (3, WHALING),
+		FISHING (1, null),				// fish (early)
+		SAILING (2, FISHING),			// shore (early)
+		WHALING (2, FISHING),			// whale
+		NAVIGATION (3, SAILING),		// discover tile
+		AQUATISM (3, WHALING),			
 
-		HUNTING (1, null),
-		ARCHERY (2, HUNTING),
-		FORESTRY (2, HUNTING),
-		SPIRITUALISM (3, ARCHERY),
-		MATHEMATICS (3, FORESTRY),
+		HUNTING (1, null),				// animal (early)
+		ARCHERY (2, HUNTING),			// (early)	
+		FORESTRY (2, HUNTING),			// forest (early)
+		SPIRITUALISM (3, ARCHERY),		
+		MATHEMATICS (3, FORESTRY),		// lumberhut
 
-		RIDING (1, null),
-		TRADE (2, RIDING),
-		FREE_SPIRIT (2, RIDING),
-		CHIVALRY (3, FREE_SPIRIT);
+		RIDING (1, null),				// (early)	
+		TRADE (2, RIDING),				// port
+		FREE_SPIRIT (2, RIDING),		// (early)
+		CHIVALRY (3, FREE_SPIRIT);		// enemy
 		
 		int rank;
 		Tech prerequisite;
@@ -83,6 +83,7 @@ public class Player {
 	private ArrayList<Tech> techs;
 	private City capital = null;
 	private ArrayList<City> cities = null;
+	private ArrayList<Unit> units = null;
 	private HashSet<Tile> vision = null;
 
 	public Player(String factionName) {
@@ -97,6 +98,8 @@ public class Player {
 		}
 		this.cities = new ArrayList<City>();
 		this.vision = new HashSet<Tile>();
+		this.units = new ArrayList<Unit>();
+		this.actions = new Action[] {new ActionEndTurn()};
 	}
 
 	public Faction getFaction() {return this.faction;}
@@ -106,11 +109,18 @@ public class Player {
 	public ArrayList<Tech> getTechs() {return this.techs;}
 	public City getCapital() {return this.capital;}
 	public ArrayList<City> getCities() {return this.cities;}
+	public ArrayList<Unit> getUnits() {return this.units;}
 	public HashSet<Tile> getVision() {return this.vision;}
 
 	public void setCapital(City city) {this.capital = city;}
 	public void addCity(City city) {this.cities.add(city);}
 	public void addVision(Tile tile) {this.vision.add(tile);}
 	public void addTech(Tech tech) {this.techs.add(tech);}
+
+	private Action[] actions;
+	public Action[] getActions() {
+		// Player-level actions include UnlockTech and EndTurn
+		return this.actions;
+	}
 	
 }

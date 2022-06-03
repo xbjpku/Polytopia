@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 
 import polytopia.gameplay.Player.Faction;
+import polytopia.gameplay.Unit.UnitType;
 import polytopia.graphics.Render;
 import polytopia.graphics.Render.BoundaryLine;
 import polytopia.utils.RandomName;
@@ -25,7 +26,12 @@ public class City implements TileVariation {
 	public City(Tile[][] grid, Tile ownerTile, Player ownerPlayer) {
 		this.ownerTile = ownerTile;
 		this.ownerPlayer = ownerPlayer;
-		this.actions = new Action[] {/* TODO: Train units. */};
+		this.actions = new Action[] {
+            new ActionTrainUnit(this, UnitType.ARCHER), new ActionTrainUnit(this, UnitType.CATAPULT), 
+            new ActionTrainUnit(this, UnitType.DEFENDER), new ActionTrainUnit(this, UnitType.KNIGHT), 
+            new ActionTrainUnit(this, UnitType.MINDBENDER), new ActionTrainUnit(this, UnitType.RIDER), 
+            new ActionTrainUnit(this, UnitType.SWORDSMAN), new ActionTrainUnit(this, UnitType.WARRIOR), 
+        };
 
 		this.name = RandomName.roll();
 		this.level = 1;

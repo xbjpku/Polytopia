@@ -268,13 +268,23 @@ public class Tile implements Visualizable {
 							for (Action action : tile.getVariation().getActions()) {
 								if (action.isVisibleTo (Game.currentPlayer))
 									actions.add(action);
-								
+							}
+						}
+						if (tile.getUnit() != null) {
+							for (Action action : tile.getUnit().getActions()) {
+								if (action.isVisibleTo (Game.currentPlayer))
+									actions.add(action);
 							}
 						}
 						for (Action action : tile.getActions()) {
 							if (action.isVisibleTo (Game.currentPlayer))
 								actions.add(action);
 						}
+						for (Action action : Game.currentPlayer.getActions()) {
+							if (action.isVisibleTo (Game.currentPlayer))
+								actions.add(action);
+						}
+
 						if (actions.size() == 0) {
 							System.out.printf ("no visible actions\n");
 							break;
