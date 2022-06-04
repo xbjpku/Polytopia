@@ -130,6 +130,7 @@ public class Tile implements Visualizable {
 		/* Makeshift Interactive Commandline, for debugging. */
 
 		/* Dump basic info. */
+		/*
 		for(Player player : Game.players) {
 			System.out.println (player.getFaction().toString());
 			City capital = player.getCapital();
@@ -146,7 +147,7 @@ public class Tile implements Visualizable {
 									tile.getVariation().toString() : "nothing");
 			}
 			System.out.println();
-		}
+		}*/
 
 		Scanner scanner = new Scanner(System.in);
 		while (true) {
@@ -154,21 +155,22 @@ public class Tile implements Visualizable {
 			switch (scanner.nextLine().strip().toLowerCase()) {
 				case "i":
 				case "info":
-					if (Game.currentPlayer == null)
+					if (Game.getCurrentPlayer() == null)
 						System.out.println("no current player");
 					else {
-						System.out.printf ("Current player: %s\n", Game.currentPlayer.getFaction().toString());
+						System.out.printf ("Current player: %s\n", Game.getCurrentPlayer().getFaction().toString());
 						System.out.printf ("\tcities: ");
-						for (City city : Game.currentPlayer.getCities())
+						for (City city : Game.getCurrentPlayer().getCities())
 							System.out.printf ("(%d, %d), ", city.getOwnerTile().getX(), city.getOwnerTile().getY());
 						System.out.println();
-						System.out.printf ("\tstars: %d\n", Game.currentPlayer.getStars());
+						System.out.printf ("\tstars: %d\n", Game.getCurrentPlayer().getStars());
 						System.out.printf ("\ttechs: ");
-						for (Tech tech : Game.currentPlayer.getTechs())
+						for (Tech tech : Game.getCurrentPlayer().getTechs())
 							System.out.printf ("%s, ", tech.toString());
 						System.out.println();
 					}
 					break;
+				/*
 				case "p":
 				case "player":
 					for (int i = 0; i < Game.players.length; i++) {
@@ -179,27 +181,28 @@ public class Tile implements Visualizable {
 					try {nextPlayer = scanner.nextInt();}
 					catch (InputMismatchException e){break;}
 					if (nextPlayer >= 0 && nextPlayer < Game.players.length) {
-						Game.currentPlayer = Game.players[nextPlayer];
-						System.out.printf ("current player switched to %s\n", Game.currentPlayer.getFaction().toString());
+						Game.getCurrentPlayer() = Game.players[nextPlayer];
+						System.out.printf ("current player switched to %s\n", Game.getCurrentPlayer().getFaction().toString());
 					}
 					else
 						System.out.println ("invalid player number");
 					break;
+				*/
 				case "s":
 				case "star":
-					if (Game.currentPlayer == null)
+					if (Game.getCurrentPlayer() == null)
 						System.out.println("no current player");
 					else {
 						System.out.printf ("new star count: ");
 						int newStar = 0;
 						try {newStar = scanner.nextInt();}
 						catch (InputMismatchException e){break;}
-						Game.currentPlayer.setStars (newStar);
+						Game.getCurrentPlayer().setStars (newStar);
 					}
 					break;
 				case "t":
 				case "tech":
-					if (Game.currentPlayer == null)
+					if (Game.getCurrentPlayer() == null)
 						System.out.println("no current player");
 					else {
 						System.out.printf ("new tech (ALL for all): ");
@@ -207,14 +210,14 @@ public class Tile implements Visualizable {
 						System.out.println(newTech);
 						if (newTech.equals("ALL")) {
 							for (Tech tech : Tech.values())
-								if (!Game.currentPlayer.getTechs().contains(tech))
-									Game.currentPlayer.addTech(tech);
+								if (!Game.getCurrentPlayer().getTechs().contains(tech))
+									Game.getCurrentPlayer().addTech(tech);
 						}
 						else {
 							try {
 								Tech tech = Tech.valueOf(newTech);
-								if (!Game.currentPlayer.getTechs().contains(tech))
-									Game.currentPlayer.addTech(tech);
+								if (!Game.getCurrentPlayer().getTechs().contains(tech))
+									Game.getCurrentPlayer().addTech(tech);
 							} catch (IllegalArgumentException e) {
 								System.out.println ("invalid Tech name");
 							}
@@ -223,7 +226,7 @@ public class Tile implements Visualizable {
 					break;
 				case "q":
 				case "query":
-					if (Game.currentPlayer == null) {
+					if (Game.getCurrentPlayer() == null) {
 						System.out.println("no current player");
 						break;
 					}
@@ -266,22 +269,22 @@ public class Tile implements Visualizable {
 						ArrayList<Action> actions = new ArrayList<>();
 						if (tile.getVariation() != null) {
 							for (Action action : tile.getVariation().getActions()) {
-								if (action.isVisibleTo (Game.currentPlayer))
+								if (action.isVisibleTo (Game.getCurrentPlayer()))
 									actions.add(action);
 							}
 						}
 						if (tile.getUnit() != null) {
 							for (Action action : tile.getUnit().getActions()) {
-								if (action.isVisibleTo (Game.currentPlayer))
+								if (action.isVisibleTo (Game.getCurrentPlayer()))
 									actions.add(action);
 							}
 						}
 						for (Action action : tile.getActions()) {
-							if (action.isVisibleTo (Game.currentPlayer))
+							if (action.isVisibleTo (Game.getCurrentPlayer()))
 								actions.add(action);
 						}
-						for (Action action : Game.currentPlayer.getActions()) {
-							if (action.isVisibleTo (Game.currentPlayer))
+						for (Action action : Game.getCurrentPlayer().getActions()) {
+							if (action.isVisibleTo (Game.getCurrentPlayer()))
 								actions.add(action);
 						}
 
@@ -294,9 +297,9 @@ public class Tile implements Visualizable {
 						for (int idx = 0; idx < actions.size(); idx++) {
 							Action action = actions.get(idx);
 							System.out.printf ("(%d) %s, %s\n", idx, 
-												action.isPerformableTo (Game.currentPlayer) ? "√" : "x", 
+												action.isPerformableTo (Game.getCurrentPlayer()) ? "√" : "x", 
 												action.toString());
-							ArrayList<Consequence> conseqs = action.getConsequences(Game.currentPlayer);
+							ArrayList<Consequence> conseqs = action.getConsequences(Game.getCurrentPlayer());
 							System.out.printf ("\t");
 							for (Consequence c : conseqs) {
 								System.out.printf ("-> %s ", c.toString());
@@ -309,8 +312,12 @@ public class Tile implements Visualizable {
 						try {actionIdx = scanner.nextInt();}
 						catch (InputMismatchException e) {break;}
 						if (actionIdx >= 0 && actionIdx < actions.size()) {
-							if (actions.get(actionIdx).isPerformableTo (Game.currentPlayer))
-								actions.get(actionIdx).apply(Game.currentPlayer);
+							if (actions.get(actionIdx).isPerformableTo (Game.getCurrentPlayer())) {
+								Action action = actions.get(actionIdx);
+								new Thread(()->{
+									action.apply(Game.getCurrentPlayer());
+								}).start();
+							}
 							else
 								System.out.println ("action not performable");
 						}
@@ -365,6 +372,8 @@ class TilesTest {
 						}
 						else {
 							Tile tile = Game.map.getGrid()[y][x];
+
+							// Game.getCurrentPlayer().getVision().contains(tile)
 							if (Game.getHumanPlayer().getVision().contains(tile)) {
 								Render.setSelcected(tile);
 								//repaint();
@@ -449,15 +458,11 @@ class TilesTest {
 				
 				/* Makeshift: a fixed JPanel to draw on. */
 				canvas = new TestCanvas();
-				canvas.setSize(3000, 3000);
+				canvas.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 				canvas.setBackground (Color.BLACK);
 
-				Random rnd = new Random(0);
-
-				/* Use TileMap::MapGenerator::generate() */
-				Game.players = new Player[] {new Player("Oumaji")};
-				Game.map = new TileMap(18, (int)System.currentTimeMillis(), "CONTINENTS", Game.players);
-
+				Game.start(18, (int) (System.currentTimeMillis()), "CONTINENTS",
+							new String[]{"Oumaji", "Imperius"});
 
 				frame.setLayout(null);
 				frame.add(canvas);
@@ -485,6 +490,9 @@ class TilesTest {
   		new Timer(delay, (ActionEvent evt) -> {
 			  this.update();
 		  }).start();
+		
+		// This starts the game cycle
+		Game.getCurrentPlayer().play();
 	}
 }
 

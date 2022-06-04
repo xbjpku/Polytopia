@@ -1,6 +1,7 @@
 package polytopia.gameplay;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.function.*;
 
 import polytopia.graphics.Visualizable;
@@ -295,6 +296,167 @@ class ConseqRemoveImprovement extends Consequence {
 	}
 }
 
+class ConseqCaptureVillage extends Consequence {
+	private Player player;
+	private Tile subject;
+
+	public void visualize() {
+
+	}
+
+	public void apply() {
+		City city = new City(Game.map.getGrid(), subject, player);
+		subject.setVariation(city);
+		player.addCity(city);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 100;
+	}
+
+	public ConseqCaptureVillage(Player player, Tile subject) {
+		this.player = player;
+		this.subject = subject;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[Captures Village (%d, %d)]", subject.getX(), subject.getY());
+	}
+}
+
+class ConseqCaptureCity extends Consequence {
+	private Player player;
+	private Tile subject;
+
+	public void visualize() {
+
+	}
+
+	public void apply() {
+		City city = (City)(subject.getVariation());
+		Player oldPlayer = city.getOwnerPlayer();
+
+		oldPlayer.getCities().remove(city);
+		player.getCities().add(city);
+
+		city.setOwnerPlayer(player);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+
+		// Can cause Discover Tile
+		City city = (City)(subject.getVariation());
+		for (Tile tile : city.getTerritory()) 
+			if (!player.getVision().contains(tile))
+				new ConseqDiscoverTile(tile, player).log(history);
+
+
+		// NOTE: This implementation is flawed: if capturing a city changes the
+		// level of adjacency-based improvements, ConseqGrowPopulation and 
+		// ConseqLosePopulation should be chained as well. However, that is relatively
+		// minor, and we hold it for now.
+
+		// Can cause EndOfGame
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 100;
+	}
+
+	public ConseqCaptureCity(Player player, Tile subject) {
+		this.player = player;
+		this.subject = subject;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[Captures City (%d, %d)]", subject.getX(), subject.getY());
+	}
+}
+
+class ConseqExploreRuins extends Consequence {
+	private Player player;
+	private Tile subject;
+	private String prompt = null;
+
+	public void visualize() {
+
+	}
+
+	public void apply() {
+		subject.setVariation(null);
+
+		// TODO: Inform player by PROMPT
+		System.out.println(prompt);
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+
+		// The Random Reward is logged as subsequent consequences.
+
+		/* List of rewards:
+		 * [0] Gain 10 Stars
+		 * [1] Random tech
+		 * [2] Gain 3 population for capital
+		 * [3] Spawn a giant
+		 */
+		Random rnd = new Random((int)System.currentTimeMillis());
+		reroll:
+		switch (rnd.nextInt(4)) {
+			case 0: 
+				new ConseqGainStars(subject, player, 10).log(history);
+				prompt = "Gain Stars";
+				break;
+			case 1: 
+				ArrayList<Tech> techs = Tech.getUnlockableTechs(player);
+				if (techs.size() == 0)
+					break reroll;
+				Tech tech = techs.get(rnd.nextInt(techs.size()));
+				new ConseqUnlockTech(tech, player).log(history);
+				prompt = "Unlock " + tech.toString();
+				break;
+			case 2:
+				new ConseqGrowPopulation(subject, player.getCapital(), 3).log(history);
+				prompt = "Grow Population";
+				break;
+			case 3:
+				if (subject.getTerrainType() == Tile.TerrainType.SHORE ||
+					subject.getTerrainType() == Tile.TerrainType.OCEAN)
+					break reroll;
+				new ConseqUnitSpawn (subject, Unit.UnitType.GIANT, player, null).log(history);
+				prompt = "Spawn Giant";
+				break;
+		}
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 100;
+	}
+
+	public ConseqExploreRuins(Player player, Tile subject) {
+		this.player = player;
+		this.subject = subject;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[Explore Ruins]", subject.getX(), subject.getY());
+	}
+}
+
 class ConseqGrowPopulation extends Consequence {
 	private Tile source;
 	private City subject;
@@ -490,7 +652,8 @@ class ConseqUpgradeCity extends Consequence {
 				break;
 			default:
 				// Get a Gaint unit
-				// new ConseqUnitSpawn
+				new ConseqUnitSpawn (subject.getOwnerTile(), Unit.UnitType.GIANT, 
+									subject.getOwnerPlayer(), null).log(history);
 		}
 	}
 
@@ -704,6 +867,88 @@ class ConseqUnitUpgrade extends Consequence {
 		return String.format("[%s upgrades]", unit.toString());
 	}
 }
+
+class ConseqUpgradeBoat extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		/* Note for Shaw */
+	}
+
+	public void apply() {
+		unit.setType(Unit.UnitType.SHIP);
+		unit.skills = new Skill[ Unit.UnitType.SHIP.skills.length];
+		for (int i=0; i<unit.skills.length; i++) {
+			unit.skills[i] = Unit.UnitType.SHIP.skills[i];
+		}
+		
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 5;
+	}
+
+	public ConseqUpgradeBoat(Unit unit) {
+		this.unit = unit;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s upgrades to ship]", unit.toString());
+	}
+}
+
+class ConseqUpgradeShip extends Consequence {
+	private Unit unit;
+
+	public void visualize() {
+		/* Note for Shaw */
+	}
+
+	public void apply() {
+		unit.setType(Unit.UnitType.BATTLESHIP);
+		unit.skills = new Skill[ Unit.UnitType.BATTLESHIP.skills.length];
+		for (int i=0; i<unit.skills.length; i++) {
+			unit.skills[i] = Unit.UnitType.BATTLESHIP.skills[i];
+		}
+	}
+
+	public void log(ArrayList<Consequence> history) {
+		// log this consequence
+		history.add(this);
+
+		// Can cause Discover Tile
+		int range = 2;
+		Player player = unit.getOwnerPlayer();
+		Tile position = unit.getPosition();
+		for (Tile tile : TileMap.getSurroundings(Game.map.getGrid(), position.getX(), position.getY(), range)) {
+			if (!player.getVision().contains(tile)) {
+				new ConseqDiscoverTile(tile, player).log(history);
+			}		
+		}
+	}
+
+	public int getReward() {
+		//TODO: Bot use this value for making decisions
+		return 10;
+	}
+
+	public ConseqUpgradeShip(Unit unit) {
+		this.unit = unit;
+	}
+
+	@Override
+	public String toString() {
+		return String.format("[%s upgrades to battleship]", unit.toString());
+	}
+}
+
 
 class ConseqUnitRecover extends Consequence {
 	private Unit unit;
@@ -1124,7 +1369,6 @@ class ConseqUnitCarry extends Consequence {
 			boat.setVeteran();
 
 		player.getUnits().remove(unit);
-		player.getUnits().add(boat);
 		boat.setOwnerCity(city);
 		if (city != null) {
 			city.getUnits().remove(unit);
@@ -1358,6 +1602,7 @@ class ConseqClaimValuableTile extends Consequence {
 		//TODO: Bot use this value for making decisions
 		//This should be worth a lot of points
 		return 100;
+
 	}
 
 	public ConseqClaimValuableTile(Tile tile) {

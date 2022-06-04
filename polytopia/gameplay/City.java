@@ -18,6 +18,7 @@ public class City implements TileVariation {
 
 	public Tile getOwnerTile() {return this.ownerTile;}
 	public Player getOwnerPlayer() {return this.ownerPlayer;}
+    public void setOwnerPlayer(Player player) {this.ownerPlayer = player;}
 	public Faction getStyle() {
 		return ownerPlayer.getFaction();
 	}
@@ -85,6 +86,10 @@ public class City implements TileVariation {
 	public boolean hasWorkshop() {return this.hasWorkshop;}
 	public ArrayList<Tile> getTerritory() {return this.territory;}
 	public ArrayList<Unit> getUnits() {return this.units;}
+
+    public int getStarsPerTurn() {
+        return level + (hasWorkshop ? 1 : 0) + (this == ownerPlayer.getCapital() ? 1 : 0);
+    }
 
 	public void setLevel(int level) {this.level = level;}
 	public void setPopulation(int population) {this.population = population;}

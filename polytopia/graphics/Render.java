@@ -35,6 +35,8 @@ public class Render {
                 int y = d - x;
                 if (y < grid[x].length) {
                     Tile tile = grid[y][x];
+
+                    //  Player humanPlayer = Game.getHumanPlayer();
                     Player humanPlayer = Game.getHumanPlayer();
 
                     if (!humanPlayer.getVision().contains(tile)) {
@@ -85,7 +87,7 @@ public class Render {
             BufferedImage terrain = Texture.getTerrainTexture(selected);
             Point2D point = camera.transPoint(new Point2D.Double((double)selected.getY(), (double)selected.getX()));
             g2d.setStroke(new BasicStroke(10.0f));
-            g2d.setColor(Color.pink);
+            g2d.setColor(Color.DARK_GRAY);
             int voffset = 0;
             if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
                 voffset = 20;
@@ -148,7 +150,7 @@ public class Render {
     static private void presentCity(Graphics2D g2d, City c){
         ArrayList<BoundaryLine> boundary = c.getBoundary();
         for(BoundaryLine line : boundary){
-            line.draw(g2d, Color.pink, 20.0f);
+            line.draw(g2d, c.getOwnerPlayer().getFaction().themeColor, 20.0f);
         }
     }
 }

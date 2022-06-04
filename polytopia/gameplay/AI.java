@@ -411,6 +411,8 @@ public class AI {
 		}
 	}
 	public static void decideActionsForAI(int playerId){
+
+        /*
 		remainStars = Game.players[playerId].getStars();
 		GainStarActions(playerId);
 		remainStars = Game.players[playerId].getStars();
@@ -420,6 +422,8 @@ public class AI {
 		remainStars = Game.players[playerId].getStars();
 		DevelopEconomyActions(playerId);
 		remainStars = Game.players[playerId].getStars();
-		TrainUnitActions(playerId);
+		TrainUnitActions(playerId);*/
+
+        new ActionEndTurn().apply(Game.players[playerId]);
 	}
 }

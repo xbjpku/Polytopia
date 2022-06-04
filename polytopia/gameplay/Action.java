@@ -1400,6 +1400,8 @@ class ActionUnitHeal extends Action {
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
+		unit.setAttackable(false);
+		unit.setMovable(false);
 	}
 
 	@Override
@@ -1439,6 +1441,8 @@ class ActionUnitConvert extends Action {
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
+		unit.setAttackable(false);
+		unit.setMovable(false);
 	}
 
 	@Override
@@ -1491,43 +1495,166 @@ class ActionUnitDisband extends Action {
 	public ActionUnitDisband(Unit unit) {this.unit = unit;}
 }
 
-class ActionEndTurn extends Action {
+class ActionUpgradeBoat extends Action {
+
+	private Unit unit;
 
 	public void visualize() {
 		
 	}
 
 	public boolean isVisibleTo(Player player) {
-		return player == Game.currentPlayer;
+		return unit.getOwnerPlayer() == player
+				&& unit.getType() == Unit.UnitType.BOAT
+				&& player.getTechs().contains(Tech.SAILING);
+
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		return this.isVisibleTo(player)
+				&& player.getStars() >= 5;
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
 
 		ArrayList<Consequence> history = new ArrayList<Consequence>();
 
-		for (Unit unit : player.getUnits()) {
-			new ConseqUnitRest(unit).log(history);
-		}
+		new ConseqUpgradeBoat(unit).log(history);
 
 		return history;
 	}
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
-		// TODO: switch to other player
 	}
 
 	@Override
 	public String toString() {
-		return "End Turn";
+		return unit.toString() + " upgrades to ship";
 	}
 
-	public ActionEndTurn() {}
+	public ActionUpgradeBoat(Unit unit) {this.unit = unit;}
 }
+
+class ActionUpgradeShip extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return unit.getOwnerPlayer() == player
+				&& unit.getType() == Unit.UnitType.SHIP
+				&& player.getTechs().contains(Tech.NAVIGATION);
+
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player)
+				&& player.getStars() >= 15;
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		new ConseqUpgradeShip(unit).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return unit.toString() + " upgrades to battleship";
+	}
+
+	public ActionUpgradeShip(Unit unit) {this.unit = unit;}
+}
+
+class ActionCaptureValuableTile extends Action {
+
+	private Unit unit;
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		if (unit.getOwnerPlayer() != player)
+			return false;
+		
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.VILLAGE)
+			return true;
+		
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.RUINS)
+			return true;
+		
+		if (unit.getPosition().getVariation() instanceof City
+			&& ((City)(unit.getPosition().getVariation())).getOwnerPlayer() != unit.getOwnerPlayer())
+			return true;
+		
+		return false;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return this.isVisibleTo(player)
+				&& unit.isAttackable() && unit.isMovable();
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.VILLAGE)
+			new ConseqCaptureVillage(unit.getOwnerPlayer(), unit.getPosition()).log(history);
+		
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.RUINS)
+			new ConseqExploreRuins(unit.getOwnerPlayer(), unit.getPosition()).log(history);
+		
+		if (unit.getPosition().getVariation() instanceof City
+			&& ((City)(unit.getPosition().getVariation())).getOwnerPlayer() != unit.getOwnerPlayer())
+			new ConseqCaptureCity(unit.getOwnerPlayer(), unit.getPosition()).log(history);
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+		unit.setAttackable(false);
+		unit.setMovable(false);
+	}
+
+	@Override
+	public String toString() {
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.VILLAGE)
+			return unit.toString() + " captures village";
+		
+		if (unit.getPosition().getVariation() instanceof Resource
+			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.RUINS)
+			return unit.toString() + " explores ruins";
+		
+		if (unit.getPosition().getVariation() instanceof City
+			&& ((City)(unit.getPosition().getVariation())).getOwnerPlayer() != unit.getOwnerPlayer())
+			return unit.toString() + " captures CITY " + ((City)(unit.getPosition().getVariation())).getName();
+		
+		return "";
+	}
+
+	public ActionCaptureValuableTile(Unit unit) {this.unit = unit;}
+}
+
+
 
 
 class ActionTrainUnit extends Action {
@@ -1577,6 +1704,93 @@ class ActionTrainUnit extends Action {
 	}
 }
 
+class ActionStartTurn extends Action {
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return true;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return player == Game.getCurrentPlayer();
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		// Gain stars
+		for (City city : player.getCities()) {
+			new ConseqGainStars(city.getOwnerTile(), player, city.getStarsPerTurn()).log(history);
+			for (Tile tile : city.getTerritory()) {
+				if (tile.getVariation() instanceof Improvement) {
+					Improvement improvement = (Improvement)(tile.getVariation());
+					if (improvement.getImprovementType() == Improvement.ImprovementType.CUSTOMS_HOUSE) {
+						if (improvement.getLevel() > 0) {
+							new ConseqGainStars(tile, player, improvement.getLevel()).log(history);
+						}
+					}
+				}
+			}
+		}
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+	}
+
+	@Override
+	public String toString() {
+		return "Start Turn";
+	}
+
+	public ActionStartTurn() {}
+}
+
+
+class ActionEndTurn extends Action {
+
+	public void visualize() {
+		
+	}
+
+	public boolean isVisibleTo(Player player) {
+		return true;
+	}
+
+	public boolean isPerformableTo(Player player) {
+		return player == Game.getCurrentPlayer();
+	}
+
+	public ArrayList<Consequence> getConsequences(Player player) {
+
+		ArrayList<Consequence> history = new ArrayList<Consequence>();
+
+		for (Unit unit : player.getUnits()) {
+			new ConseqUnitRest(unit).log(history);
+		}
+
+		return history;
+	}
+
+	public void apply(Player player) {
+		Consequence.apply (this.getConsequences(player));
+		Game.nextPlayer();
+	}
+
+	@Override
+	public String toString() {
+		return "End Turn";
+	}
+
+	public ActionEndTurn() {}
+}
+
+
 
 // Capture village
 // (capture village -> discover tiles)
@@ -1584,8 +1798,5 @@ class ActionTrainUnit extends Action {
 // (capture city -> discover tiles)
 // Explore ruins
 // (random)
-
-// TurnStart
-// (gain stars)
 
 // new conseq: capture city; capture village; 

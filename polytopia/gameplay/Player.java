@@ -2,11 +2,20 @@ package polytopia.gameplay;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.awt.Color;
 
 public class Player {
 
 	public enum Faction {
-		Xinxi, Imperius, Bardur, Oumaji;
+		Xinxi (Color.RED), 
+		Imperius (Color.BLUE), 
+		Bardur (Color.DARK_GRAY), 
+		Oumaji (Color.YELLOW);
+
+		public final Color themeColor;
+		Faction(Color color) {
+			this.themeColor = color;
+		}
 	}
 
 	public enum Tech {
@@ -85,8 +94,10 @@ public class Player {
 	private ArrayList<City> cities = null;
 	private ArrayList<Unit> units = null;
 	private HashSet<Tile> vision = null;
+	private boolean isBot;
+	private int playerId;
 
-	public Player(String factionName) {
+	public Player(String factionName, int playerId, boolean isBot) {
 		this.faction = Faction.valueOf(factionName);
 		this.stars = 5;
 		this.techs = new ArrayList<Tech>();
@@ -100,7 +111,11 @@ public class Player {
 		this.vision = new HashSet<Tile>();
 		this.units = new ArrayList<Unit>();
 		this.actions = new Action[] {new ActionEndTurn()};
+		this.playerId = playerId;
+		this.isBot = isBot;
 	}
+
+	public boolean isBot() {return this.isBot;}
 
 	public Faction getFaction() {return this.faction;}
 	public int getStars() {return this.stars;}
@@ -121,6 +136,42 @@ public class Player {
 	public Action[] getActions() {
 		// Player-level actions include UnlockTech and EndTurn
 		return this.actions;
+	}
+
+	public int getStarsPerTurn() {
+		// Cities and CUSTOMS_HOUSEs give Stars Per Turn.
+		int starsPerTurn = 0;
+		for (City city : cities) {
+			starsPerTurn += city.getStarsPerTurn();
+			for (Tile tile : city.getTerritory()) {
+				if (tile.getVariation() instanceof Improvement) {
+					Improvement improvement = (Improvement)(tile.getVariation());
+					if (improvement.getImprovementType() == Improvement.ImprovementType.CUSTOMS_HOUSE) {
+						starsPerTurn += improvement.getLevel();
+					}
+				}
+			}
+		}
+		return starsPerTurn;
+	}
+
+	/* Player plays for one turn. */
+	public void play() {
+
+		// Apply the start turn action
+		new ActionStartTurn().apply(this);
+
+		if (!this.isBot) {
+			// Human player.
+			// TODO: A greeting message, if turn 0
+			// TODO: Release the BLOCK_ACTIONs lock, so that actions can be applied
+		}
+		else {
+			// Bot player.
+			// Invoke AI to take actions.
+			AI.decideActionsForAI(this.playerId);
+		}
+
 	}
 	
 }

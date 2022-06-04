@@ -55,7 +55,7 @@ public class Unit implements Visualizable {
 	// Attributes
 	private int health;
 	private UnitType type;
-	private Skill[] skills;
+	public Skill[] skills;
 	private Unit carryUnit = null;
 	private Player ownerPlayer = null;
 	private City ownerCity = null;
@@ -89,6 +89,7 @@ public class Unit implements Visualizable {
 	public City getOwnerCity() {return this.ownerCity;}
 	public void setOwnerCity(City city) {this.ownerCity = city;}
 	public UnitType getType() {return this.type;}
+	public void setType(UnitType type) {this.type = type;}
 	public Unit getCarryUnit() {return this.carryUnit;}
 	public void setCarryUnit(Unit unit) {this.carryUnit = unit;}
 	public Tile getPosition() {return this.position;}
@@ -278,6 +279,14 @@ public class Unit implements Visualizable {
 
 	public ArrayList<Action> getActions() {
 		ArrayList<Action> legalActions = new ArrayList<>();
+
+		legalActions.add(new ActionCaptureValuableTile(this));
+
+		if(type == UnitType.BOAT)
+			legalActions.add(new ActionUpgradeBoat(this));
+		
+		if(type == UnitType.SHIP)
+			legalActions.add(new ActionUpgradeShip(this));
 
 		if(hasSkill(Skill.HEAL))
 			legalActions.add(new ActionUnitHeal(this));

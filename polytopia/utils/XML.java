@@ -1,4 +1,4 @@
-package polytopia.util;
+package polytopia.utils;
 
 import java.util.Properties;
 import java.io.*;

@@ -58,6 +58,7 @@ class Resource implements TileVariation {
 				break;
 			case WHALE:
 				this.actions = new Action[] {new ActionWhaling(this)};
+				break;
 			
 			default:
 				this.actions = new Action[] {};		
