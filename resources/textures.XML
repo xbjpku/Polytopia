@@ -144,4 +144,12 @@
 <entry key="GIANT-Oumaji-active">./resources/units/Oumaji/giant_glow.png</entry>
 <entry key="GIANT-Oumaji-inactive">./resources/units/Oumaji/giant_gray.png</entry>
 
+<entry key="POPULATION-Bardur">./resources/tiles/Bardur/Bardur.png</entry>
+<entry key="POPULATION-Imperius">./resources/tiles/Imperius/Imperius.png</entry>
+<entry key="POPULATION-Oumaji">./resources/tiles/Oumaji/Oumaji.png</entry>
+<entry key="POPULATION-Xinxi">./resources/tiles/Xinxi/Xinxi.png</entry>
+<entry key="STAR">./resources/misc/Star.png</entry>
+<entry key="MOVEMENT">./resources/misc/movement.png</entry>
+<entry key="ATTACK">./resources/misc/attack.png</entry>
+
 </properties>

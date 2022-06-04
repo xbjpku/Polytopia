@@ -7,7 +7,7 @@ public class Game {
 
 	public static Player getHumanPlayer() {
 		// Human player is always index 0
-		return players[0];
+		return players[currentPlayerId];
 	}
 
 	private static int turn = 0;

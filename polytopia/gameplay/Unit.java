@@ -1,6 +1,9 @@
 package polytopia.gameplay;
 
 import polytopia.graphics.Visualizable;
+import polytopia.graphics.Motion;
+import polytopia.graphics.Movable;
+import polytopia.graphics.Render;
 import polytopia.gameplay.Player.Tech;
 
 import java.lang.reflect.Array;
@@ -8,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class Unit implements Visualizable {
+public class Unit implements Visualizable, Movable {
 
 	public enum Skill {
 		CARRY, FLOAT, DASH, FORTIFY, ESCAPE, HEAL, CONVERT, SCOUT, PERSIST;
@@ -52,6 +55,8 @@ public class Unit implements Visualizable {
 			this.prerequisite = prerequisite;
 		}
 	}
+	
+
 	// Attributes
 	private int health;
 	private UnitType type;
@@ -68,9 +73,36 @@ public class Unit implements Visualizable {
 	private int kills = 0;
 	private boolean veteran = false;
 
+	private boolean flipped = false;
+	public boolean isFlipped() {return this.flipped;}
+	public void setFlipped(boolean flipped) {this.flipped = flipped;}
+
+	private Motion motion;
+	public void setMotion(Motion motion) {this.motion = motion;}
+	public Motion getMotion() {return this.motion;}
 	// Selection response
 	public void visualize() {
-		System.out.println("Unit selected");
+		
+        int size = Game.map.getSize();
+		Action[][] actionMap = new Action[size][size];
+		ArrayList<Action> actions = this.getActions();
+		for (Action action : actions) {
+			if (!action.isPerformableTo(Game.getCurrentPlayer()))
+				continue;
+
+			if (action instanceof ActionUnitMove) {
+				Tile dest = ((ActionUnitMove)(action)).getDestination();
+				Render.setDecorationMap(dest.getY(), dest.getX(), Render.Decoration.UNIT_MOVE);
+			}
+			if (action instanceof ActionUnitAttack) {
+				Tile dest = ((ActionUnitAttack)(action)).getDestination();
+				Render.setDecorationMap(dest.getY(), dest.getX(), Render.Decoration.UNIT_ATTACK);
+			}
+			if (action instanceof ActionUnitConvert) {
+				Tile dest = ((ActionUnitConvert)(action)).getDestination();
+				Render.setDecorationMap(dest.getY(), dest.getX(), Render.Decoration.UNIT_ATTACK);
+			}
+		}
 	}
 
 	public Unit(UnitType type, Player player) {
@@ -128,7 +160,10 @@ public class Unit implements Visualizable {
 	}
 
 	public int getMaxHealth() {
-		return this.type.maxHealth + (this.veteran ? 5 : 0);
+		if (this.carryUnit == null)
+			return this.type.maxHealth + (this.veteran ? 5 : 0);
+		else
+			return this.carryUnit.type.maxHealth + (this.veteran ? 5 : 0);
 	}
 	public int getCost() {
 		if (carryUnit != null)
@@ -178,16 +213,6 @@ public class Unit implements Visualizable {
 			if (move <= 0)
 				continue;
 			
-			boolean inControl = false;
-			for(int i = 0; i < 8; i++) {
-				int x = tile.getX() + dx[i];
-				int y = tile.getY() + dy[i];
-				if (TileMap.isValid(grid, x, y) && grid[x][y].hasEnemy(ownerPlayer))
-					inControl = true;
-			}
-			// in enemy control zone
-			if (inControl)
-				continue;
 
 			for(int i = 0; i < 8; i++) {
 				int x = tile.getX() + dx[i];
@@ -196,6 +221,16 @@ public class Unit implements Visualizable {
 					continue;
 				if(grid[x][y].getUnit() != null)
 					continue;
+				
+				// in enemy control zone
+				boolean inControl = false;
+				for(int j = 0; j < 8; j++) {
+					int xx = x + dx[j];
+					int yy = y + dy[j];
+					if (TileMap.isValid(grid, xx, yy) && grid[xx][yy].hasEnemy(ownerPlayer))
+						inControl = true;
+					break;
+				}
 
 				// Need CLIMBING to go on mountains
 				if (grid[x][y].getTerrainType() == Tile.TerrainType.MOUNTAIN 
@@ -217,9 +252,9 @@ public class Unit implements Visualizable {
 								continue;
 					
 					switch (grid[x][y].getTerrainType()) {
-						case FIELD: q.add(new State(grid[x][y], move-1)); break;
-						case FOREST: q.add(new State(grid[x][y], move-2)); break;
-						case MOUNTAIN: q.add(new State(grid[x][y], move-2)); break;
+						case FIELD: q.add(new State(grid[x][y], inControl ? 0 : move-1)); break;
+						case FOREST: q.add(new State(grid[x][y], inControl ? 0 : move-2)); break;
+						case MOUNTAIN: q.add(new State(grid[x][y], inControl ? 0 : move-2)); break;
 						case SHORE: q.add(new State(grid[x][y], 0)); break;
 						case OCEAN: q.add(new State(grid[x][y], 0)); break;
 					}
@@ -227,8 +262,8 @@ public class Unit implements Visualizable {
 				else {
 					// Navy unit
 					switch (grid[x][y].getTerrainType()) {
-						case SHORE: q.add(new State(grid[x][y], move-1)); break;
-						case OCEAN: q.add(new State(grid[x][y], move-1)); break;
+						case SHORE: q.add(new State(grid[x][y], inControl ? 0 : move-1)); break;
+						case OCEAN: q.add(new State(grid[x][y], inControl ? 0 : move-1)); break;
 						default: q.add(new State(grid[x][y], 0));
 					}
 				}

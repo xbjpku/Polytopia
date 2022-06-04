@@ -5,6 +5,9 @@ import java.util.Random;
 import java.util.function.*;
 
 import polytopia.graphics.Visualizable;
+import polytopia.graphics.Motion;
+import polytopia.graphics.Render;
+import polytopia.graphics.Motion.MotionType;
 import polytopia.gameplay.Player.Tech;
 import polytopia.gameplay.Unit.Skill;
 
@@ -20,7 +23,6 @@ public abstract class Consequence implements Visualizable {
 		while (idx < history.size()) {
 			Consequence c = history.get(idx);
 			c.visualize();
-			// TODO: Implement Events.
 			c.apply();
 			idx++;
 		}
@@ -42,6 +44,9 @@ class ConseqRemoveResource extends Consequence {
 			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
 			Around 0.5s, centered at the tile.
 			NON-BLOCKING: Does not wait for the animation to complete. */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject.getOwnerTile(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -121,6 +126,9 @@ class ConseqBuildImprovement extends Consequence {
 			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
 			Around 0.5s, centered at the tile. 
 			NON-BLOCKING: Does not wait for the animation to complete.*/
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -214,7 +222,9 @@ class ConseqRemoveImprovement extends Consequence {
 			where “O” is a small fog texture. Make this pattern expand a bit, while fading.)
 			Around 0.5s, centered at the tile.
 			NON-BLOCKING: Does not wait for the animation to complete. */
-
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject.getOwnerTile(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -476,16 +486,31 @@ class ConseqGrowPopulation extends Consequence {
 			Tile Jump Animation.
 			Make the tile (that SUBJECT is on) shake (down and up) a bit. 
 			NON-BLOCKING: Does not wait for the animation to complete. */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("POPULATION-" + source.getOwnerCity().getOwnerPlayer().getFaction().toString(),
+			source, source.getOwnerCity().getOwnerTile(),  current, current + 500);
+		Render.addMotion(t);
+		
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
 
+		current = System.currentTimeMillis();
+		t = Motion.getInstanceOfMovableMotion(subject.getOwnerTile(), subject.getOwnerTile(), current, current + 200);
+		Render.addMotion(t);
+		subject.getOwnerTile().setMotion(t);
+
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
 	}
 
 	public void apply() {
 		int population = subject.getPopulation() + value;
-		// Guaranteed that at most one upgrade each time
-		if (population >= subject.getLevel() + 1) {
-			population -= subject.getLevel() + 1;
-			subject.setLevel(subject.getLevel() + 1);
-		}
 		subject.setPopulation(population);
 	}
 
@@ -546,6 +571,16 @@ class ConseqLosePopulation extends Consequence {
 			Tile Jump Animation.
 			Make the tile (that SUBJECT is on) shake a bit. 
 			BLOCKING: Wait for the animation to complete. */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfMovableMotion(subject.getOwnerTile(), subject.getOwnerTile(), current, current + 200);
+		Render.addMotion(t);
+		subject.getOwnerTile().setMotion(t);
+		
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
 
 	}
 
@@ -591,10 +626,27 @@ class ConseqUpgradeCity extends Consequence {
 			Press the tile (that SUBJECT is on) down (harder than the jump animation),
 			then make it bounce back. 
 			BLOCKING: Wait for the animation to complete. */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfMovableMotion(subject.getOwnerTile(), subject.getOwnerTile(), current, current + 400);
+		t.setMotionType(MotionType.PRESSED);
+		Render.addMotion(t);
+		subject.getOwnerTile().setMotion(t);
+		
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
 	}
 
 	public void apply() {
-		// GrowPopulation has already changed city level and population.
+		// Guaranteed that at most one upgrade each time
+		int population = subject.getPopulation();
+		if (population >= subject.getLevel() + 1) {
+			population -= subject.getLevel() + 1;
+		}
+		subject.setPopulation(population);
+		subject.setLevel(subject.getLevel() + 1);
 
 		switch (newLevel) {
 			case 0:
@@ -685,6 +737,9 @@ class ConseqGainStars extends Consequence {
 			Display a star texture (not included yet), and move it from SOURCE to upper
 			middle of the *screen*, along a curve, accelerating. 
 			NON-BLOCKING: Does not wait for the animation to complete. */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("STAR", source,  current, current + 5000);
+		Render.addMotion(t);
 
 	}
 
@@ -722,6 +777,9 @@ class ConseqChangeTerrain extends Consequence {
 		/* Note for Shaw: 
 			Fog Animation
 			NON-BLOCKING */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -799,6 +857,9 @@ class ConseqDiscoverTile extends Consequence {
 		/* Note for Shaw: 
 			Fog Animation
 			NON-BLOCKING */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -839,6 +900,7 @@ class ConseqUnitUpgrade extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Upgrade Animation
 	}
 
 	public void apply() {
@@ -873,6 +935,7 @@ class ConseqUpgradeBoat extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Upgrade Animation
 	}
 
 	public void apply() {
@@ -909,6 +972,7 @@ class ConseqUpgradeShip extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Upgrade Animation
 	}
 
 	public void apply() {
@@ -956,6 +1020,7 @@ class ConseqUnitRecover extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Heal Animation
 	}
 
 	public void apply() {
@@ -989,7 +1054,21 @@ class ConseqUnitMove extends Consequence {
 	private Tile destination;
 
 	public void visualize() {
-		/* Note for Shaw */
+		if (destination.getY()-unit.getPosition().getY() > destination.getX()-unit.getPosition().getX())
+			unit.setFlipped(false);
+		if (destination.getY()-unit.getPosition().getY() < destination.getX()-unit.getPosition().getX())
+			unit.setFlipped(true);
+
+		long current = System.currentTimeMillis();
+		long elapsed = TileMap.getDistance(unit.getPosition(), destination)*120;
+		Motion t = Motion.getInstanceOfMovableMotion(unit, unit.getPosition(), destination, current, current + elapsed);
+		Render.addMotion(t);
+		unit.setMotion(t);
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
 	}
 
 	public void apply() {
@@ -1083,6 +1162,7 @@ class ConseqUnitAttack extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Attack animation
 	}
 
 	public void apply() {
@@ -1153,7 +1233,7 @@ class ConseqUnitAttack extends Consequence {
 			if (enemy.getAttack() > 0
 				&& TileMap.getDistance(from, to) <= enemy.getRange()
 				&& player.getVision().contains(to))
-				new ConseqUnitRetaliate(enemy, unit, defenseResult);
+				new ConseqUnitRetaliate(enemy, unit, defenseResult).log(history);
 		}
 	}
 
@@ -1170,8 +1250,8 @@ class ConseqUnitAttack extends Consequence {
 		Unit defender = enemy;
 		float accelerator = 4.5F;
 		float defenseBonus = defender.getDefenseBonus();
-		float attackForce = unit.getAttack() * (unit.getHealth() / unit.getMaxHealth());
-		float defenseForce = defender.getDefense() * (defender.getHealth() / defender.getMaxHealth()) * defenseBonus;
+		float attackForce = unit.getAttack() * (1.0F * unit.getHealth() / unit.getMaxHealth());
+		float defenseForce = defender.getDefense() * (1.0F * defender.getHealth() / defender.getMaxHealth()) * defenseBonus;
 		float totalDamage = attackForce + defenseForce;
 		
 		attackResult = Math.round((attackForce / totalDamage) * unit.getAttack() * accelerator);
@@ -1192,6 +1272,7 @@ class ConseqUnitRetaliate extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Attack animation
 	}
 
 	public void apply() {
@@ -1231,6 +1312,7 @@ class ConseqUnitConvert extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Upgrade animation
 	}
 
 	public void apply() {
@@ -1305,6 +1387,7 @@ class ConseqUnitDeath extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// TODO: Death animation
 	}
 
 	public void apply() {
@@ -1354,6 +1437,7 @@ class ConseqUnitCarry extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// No animation
 	}
 
 	public void apply() {
@@ -1407,6 +1491,7 @@ class ConseqUnitLand extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// No animation
 	}
 
 	public void apply() {
@@ -1460,6 +1545,7 @@ class ConseqUnitRest extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		// No animation
 	}
 
 	public void apply() {
@@ -1506,6 +1592,9 @@ class ConseqUnitSpawn extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", tile, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {

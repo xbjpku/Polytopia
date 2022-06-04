@@ -15,12 +15,14 @@ import java.util.InputMismatchException;
 
 import polytopia.graphics.Visualizable;
 import polytopia.graphics.Render;
+import polytopia.graphics.Motion;
+import polytopia.graphics.Movable;
 import polytopia.gameplay.Player.Faction;
 import polytopia.gameplay.Player.Tech;
 
 
 /** A tile on the game map. */
-public class Tile implements Visualizable {
+public class Tile implements Visualizable, Movable {
 
 	private int x;
 	private int y;
@@ -46,6 +48,8 @@ public class Tile implements Visualizable {
 	private City ownerCity;
 
 	private Action[] actions;
+
+	private Motion motion;
 
 	public Tile(int x, int y, TerrainType terrain, TileVariation variation, Faction style) {
 		this.x = x;
@@ -88,14 +92,48 @@ public class Tile implements Visualizable {
 	public void setStyle(Faction style) {this.style = style;}
 	public void setOwnerCity(City city) {this.ownerCity = city;}
 
+	public void setMotion(Motion m) {this.motion = m;}
+	public Motion getMotion(){return this.motion;}
+
 	// Selection response
 	public void visualize(/* GUI component */) {
-		System.out.printf("Tile (%d, %d) selected\n", this.x, this.y);
 
-		/* Note for Shaw:
-			Tile Jump Animation:
-				Make the *OWNER CITY* of this TILE jump, if it exists.
-				NON-BLOCKING. */
+		Player humanPlayer = Game.getHumanPlayer();
+		if (!humanPlayer.getVision().contains(this)) {
+			// FOG
+			long current = System.currentTimeMillis();
+			Motion t = Motion.getInstanceOfTextureMotion("FOG", this, current, current + 400);
+			Render.addMotion(t);
+
+			current = System.currentTimeMillis();
+			t = Motion.getInstanceOfMovableMotion(this, this, current, current + 200);
+			Render.addMotion(t);
+			this.setMotion(t);
+		}
+
+		if (this.getOwnerCity() == null)
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfMovableMotion(this.getOwnerCity().getOwnerTile(), this.getOwnerCity().getOwnerTile(), current, current + 200);
+		Render.addMotion(t);
+		this.getOwnerCity().getOwnerTile().setMotion(t);
+
+		// Fog Animation
+		/*long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", this, current, current + 400);
+		Render.addMotion(t);*/
+
+		//Grow Population
+		/*long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("POPULATION-" + getOwnerCity().getOwnerPlayer().getFaction().toString(),
+		 this, getOwnerCity().getOwnerTile(),  current, current + 500);
+		Render.addMotion(t);*/
+
+		//Get star
+		/*long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("STAR", this,  current, current + 5000);
+		Render.addMotion(t);*/
 	}
 
 	// Checks for ownership and unit occupation
@@ -323,6 +361,10 @@ public class Tile implements Visualizable {
 						}
 					}
 					break;
+				case "0":
+					new Thread(()->{
+						new ActionEndTurn().apply(Game.getCurrentPlayer());
+					}).start();
 				case "":
 					break;
 				default:
@@ -347,12 +389,17 @@ class TilesTest {
 	private boolean loaded = false;
 	private TestCanvas canvas = null;
 
+	
+	private Tile selectedTile = null;
+	private Unit selectedUnit = null;
+	private boolean preferUnit = true;
+	private boolean inAction = false;
+
 	public void update() {
 		this.canvas.repaint();
 	}
 
 	class TestCanvas extends JPanel {
-
 			public TestCanvas() {
 				/* Makeshift camera. */
 				addMouseListener(new MouseAdapter() {
@@ -361,62 +408,109 @@ class TilesTest {
 
 					}
         		});
+
 				addMouseListener(new MouseAdapter() {
-            		public void mouseReleased(MouseEvent e) {
+            		public void mouseClicked(MouseEvent e) {
+						//Render.camera.cameraFocus(e.getX(), e.getY(), getWidth(), getHeight());
+						
 						Point2D des = Render.camera.inverseTransPoint(new Point2D.Double((double)e.getX(), (double)e.getY()));
 						int x = (int)Math.ceil(des.getX());
 						int y = (int)Math.ceil(des.getY());
+						
+						Render.clearDecorationMap();
 						if (!TileMap.isValid(Game.map.getGrid(), x, y)) {
 							System.out.printf ("(%d, %d) is not on map", x, y);
-							Render.setSelcected(null);
+							Render.setSelected(null);
+
+							selectedTile = null;
+							selectedUnit = null;
+							preferUnit = true;
 						}
 						else {
-							Tile tile = Game.map.getGrid()[y][x];
-
-							// Game.getCurrentPlayer().getVision().contains(tile)
-							if (Game.getHumanPlayer().getVision().contains(tile)) {
-								Render.setSelcected(tile);
-								//repaint();
-								System.out.printf ("(%d, %d), %s, with %s\n",
-											tile.getX(), tile.getY(), 
-											tile.getTerrainType().toString(),
-											tile.getVariation() != null ?
-											tile.getVariation().toString() : "nothing");
-								if (tile.getVariation() instanceof Improvement) {
-									Improvement improvement = (Improvement) (tile.getVariation());
-									System.out.printf ("%s at level %d\n", improvement.toString(), improvement.getLevel());
-								}
-								else if (tile.getVariation() instanceof City) {
-									City city = (City)(tile.getVariation());
-									System.out.printf ("City %s at (%d, %d)\n", city.getName(), 
-														tile.getX(), tile.getY());
-									System.out.printf ("Level: %d\t Population: %d\n", city.getLevel(), city.getPopulation());
-
-									System.out.println ("Territory:");
-									ArrayList<Tile> territory = city.getTerritory();
-									for (Tile t : territory) {
-										System.out.printf ("(%d, %d), %s, with %s\n",
-															t.getX(), t.getY(), 
-															t.getTerrainType().toString(),
-															t.getVariation() instanceof TileVariation ?
-															t.getVariation().toString() : "nothing");
+							if (selectedUnit != null && !inAction) {
+								boolean actionPerformed = false;
+								Tile tile = Game.map.getGrid()[y][x];
+								for (Action action : selectedUnit.getActions()) {
+									if (!action.isPerformableTo(Game.getCurrentPlayer()))
+										continue;
+									if (action instanceof ActionUnitMove) {
+										Tile dest = ((ActionUnitMove)(action)).getDestination();
+										if (dest == tile) {
+											actionPerformed = true;
+											inAction = true;
+											new Thread(()->{
+												action.apply(Game.getCurrentPlayer());
+												inAction = false;
+											}).start();
+										}	
 									}
-									System.out.println();
+									if (action instanceof ActionUnitAttack) {
+										Tile dest = ((ActionUnitAttack)(action)).getDestination();
+										if (dest == tile) {
+											actionPerformed = true;
+											inAction = true;
+											new Thread(()->{
+												action.apply(Game.getCurrentPlayer());
+												inAction = false;
+											}).start();
+										}	
+									}
+									if (action instanceof ActionUnitConvert) {
+										Tile dest = ((ActionUnitConvert)(action)).getDestination();
+										if (dest == tile) {
+											actionPerformed = true;
+											inAction = true;
+											new Thread(()->{
+												action.apply(Game.getCurrentPlayer());
+												inAction = false;
+											}).start();
+										}	
+									}
+								}
+								if (actionPerformed)
+									return;
+							}
+
+							Tile tile = Game.map.getGrid()[y][x];
+							Render.setSelected(tile);
+							selectedTile = tile;
+							
+							if (tile.getUnit() == null || !preferUnit) {
+								preferUnit = true;
+								selectedUnit = null;
+								tile.visualize();
+								if (Game.getHumanPlayer().getVision().contains(tile)){
+									System.out.printf ("(%d, %d), %s, with %s\n",
+												tile.getX(), tile.getY(), 
+												tile.getTerrainType().toString(),
+												tile.getVariation() != null ?
+												tile.getVariation().toString() : "nothing");
+								}
+								else{
+									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
 								}
 							}
 							else {
-								Render.setSelcected(null);
-								//repaint();
-								System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
+								if (Game.getHumanPlayer().getVision().contains(tile)){
+									preferUnit = false;
+									selectedUnit = tile.getUnit();
+									System.out.printf ("%s at %d health\n", selectedUnit.toString(), selectedUnit.getHealth());
+									tile.getUnit().visualize();
+								}
+								else{
+									preferUnit = true;
+									selectedUnit = null;
+									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
+								}
 							}
 						}
 					}
-				});
+        		});
+
 
 				addMouseWheelListener(new MouseAdapter() {
             		public void mouseWheelMoved(MouseWheelEvent e) {
 						Render.camera.changeScale(e.getWheelRotation());
-						//repaint();
             		}
         		});
 
@@ -424,11 +518,10 @@ class TilesTest {
         		addMouseMotionListener(new MouseAdapter() {
             		public void mouseDragged(MouseEvent e) {
 						Render.camera.changePos(e.getX(), e.getY());
-						//repaint();
             		}
        			});
-				addMouseMotionListener(new MouseAdapter() {
 
+				addMouseMotionListener(new MouseAdapter() {
 					public void mouseMoved(MouseEvent e) {
 						Render.camera.setMousePos(e.getX(), e.getY());
 					}
@@ -461,8 +554,8 @@ class TilesTest {
 				canvas.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 				canvas.setBackground (Color.BLACK);
 
-				Game.start(18, (int) (System.currentTimeMillis()), "CONTINENTS",
-							new String[]{"Oumaji", "Imperius"});
+				Game.start(12, (int) (System.currentTimeMillis()), "DRYLAND",
+							new String[]{"Oumaji", "Oumaji"});
 
 				frame.setLayout(null);
 				frame.add(canvas);

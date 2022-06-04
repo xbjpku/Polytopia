@@ -1,7 +1,6 @@
 package polytopia.graphics;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.geom.*;
 
 public class Camera {
@@ -15,15 +14,17 @@ public class Camera {
     private final int cameraMaxZoom = 80;
     private final double cameraMinScale = 0.2;
     private final double cameraMaxScale = 0.5;
+    private static final long focusCycle = 500;
     
-			
-    private int dragStartX = 0;
-    private int dragStartY = 0;
-    private int mouseX = 0;
-    private int mouseY = 0;
+    private int lastX = 0;
+    private int laxtY = 0;
+    private int destinationX;
+    private int destinationY;
+    private long lastTime;
+    private long startTime;
 
-
-    private int velocity;
+    private int velocityX = 0;
+    private int velocityY = 0;
 
     // used for transforming the point
     final private AffineTransform pointTrans = new AffineTransform();
@@ -37,7 +38,8 @@ public class Camera {
         pointTrans.rotate(rotate, 0, 0);
         pointTrans.shear(1 / Math.tan(theta), 0);
         pointTrans.scale(sx, sy * (Math.sin(theta)));
-        velocity = 0;
+        velocityX = 0;
+        velocityY = 0;
         setCamera(posX, posY, scale);
     }
 
@@ -66,40 +68,49 @@ public class Camera {
     }
 
     public void changePos (int endX, int endY){
-    
-        setCamera(cameraX + endX - dragStartX, cameraY + endY - dragStartY);
-        dragStartX = endX;
-        dragStartY = endY;
-        
+        setCamera(cameraX + endX - lastX, cameraY + endY - laxtY);
+        lastX = endX;
+        laxtY = endY;
     }
+
     public void setGraphics2D(Graphics2D g2d) {
         g2d.transform(trans);
     }
+
     public void changeScale (int detaZoom) {
-        cameraZoom -= detaZoom;
+        cameraZoom -= detaZoom * 10;
         if (cameraZoom < cameraMinZoom)
             cameraZoom = cameraMinZoom;
         if (cameraZoom > cameraMaxZoom)
             cameraZoom = cameraMaxZoom;
         double scale = (cameraMaxScale + cameraMinScale) / 2 + (cameraMaxScale - cameraMinScale) / 2 
         * Math.sin((Math.PI / (cameraMaxZoom - cameraMinZoom)) * cameraZoom);
-        try{
-            Point2D focus = trans.inverseTransform(new Point2D.Double(mouseX, mouseY), null);
-            setCamera(cameraX - (int)(focus.getX() * (scale - cameraScale)), cameraY - (int)(focus.getY() * (scale - cameraScale)), scale);
-        }
-        catch(Exception e){
-            System.out.println(e + "can't be inversed");
-            setCamera(scale);
-        }
+        setCamera(scale);
     }
+
+
     public Point2D transPoint (Point2D point){
         
         Point2D dst = new Point2D.Double();
         return pointTrans.transform(point, dst);
     }
 
-
+    public void cameraFocus(int focusX, int focusY, int width, int height){
+        if(focusX > 3 * width / 4 ||  focusX < width / 4 || focusY > 3 * height / 4 || focusY < height /4){
+            destinationX = width / 2 - focusX + cameraX;
+            destinationY = height / 2 - focusY + cameraY;
+            startTime = System.currentTimeMillis();
+            lastTime = 0;
+        }
+    }
     
+    public void updateCamera(){
+        lastTime = System.currentTimeMillis() - startTime;
+        if (lastTime < focusCycle) {
+            setCamera((int)((destinationX - cameraX) * ((double)lastTime / focusCycle)) + cameraX, 
+            (int)((destinationY - cameraY) * ((double)lastTime / focusCycle)) + cameraY);
+        }
+    }
     public Point2D inverseTransPoint(Point2D point) {
         try{
             Point2D tmp = trans.inverseTransform(point, null);
@@ -113,11 +124,11 @@ public class Camera {
     }
 
     public void setMousePos(int x, int y) {
-        mouseX = x;
-        mouseY = y;
+        
     }
+
     public void setStart(int x, int y){
-        dragStartX = x;
-        dragStartY = y;
+        lastX = x;
+        laxtY = y;
     }
 }

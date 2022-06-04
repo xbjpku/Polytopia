@@ -53,7 +53,7 @@ public class City implements TileVariation {
 		this.units = new ArrayList<Unit>();
 	}
 
-    public ArrayList<BoundaryLine> getBoundary(){
+    public ArrayList<BoundaryLine> getBoundary(Player viewingPlayer){
         ArrayList<BoundaryLine> lines = new ArrayList<BoundaryLine>();
         int size = Game.map.getSize();
         boolean[][] terri = new boolean[size][size];
@@ -62,7 +62,9 @@ public class City implements TileVariation {
         }
         for(int i = 0; i < size; i++){
             for(int j = 0; j < size; j++){
-                if(terri[i][j] == false) continue;
+                if(terri[i][j] == false
+					|| !viewingPlayer.getVision().contains(Game.map.getGrid()[i][j])) 
+					continue;
                 if(i - 1 < 0 || terri[i - 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.LEFTUP));
                 if(i + 1 >= size || terri[i + 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTDOWN));
                 if(j - 1 < 0 || terri[i][j - 1] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTUP));

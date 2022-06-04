@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.awt.Color;
 
+import polytopia.graphics.Render.BoundaryLine;
+
 public class Player {
 
 	public enum Faction {
@@ -138,6 +140,29 @@ public class Player {
 		return this.actions;
 	}
 
+	public ArrayList<BoundaryLine> getBoundary(Player viewingPlayer){
+        ArrayList<BoundaryLine> lines = new ArrayList<BoundaryLine>();
+        int size = Game.map.getSize();
+        boolean[][] terri = new boolean[size][size];
+		for(City c : cities){
+			ArrayList<Tile> territory = c.getTerritory();
+			for(Tile t : territory){
+				if (viewingPlayer.getVision().contains(t))
+                	terri[t.getY()][t.getX()] = true;
+			}
+		}
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size; j++){
+                if(terri[i][j] == false) continue;
+                if(i - 1 < 0 || terri[i - 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.LEFTUP));
+                if(i + 1 >= size || terri[i + 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTDOWN));
+                if(j - 1 < 0 || terri[i][j - 1] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTUP));
+                if(j + 1 >= size || terri[i][j + 1] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.LEFTDOWN));
+            }
+        }
+        return lines;
+    }
+
 	public int getStarsPerTurn() {
 		// Cities and CUSTOMS_HOUSEs give Stars Per Turn.
 		int starsPerTurn = 0;
@@ -169,7 +194,10 @@ public class Player {
 		else {
 			// Bot player.
 			// Invoke AI to take actions.
-			AI.decideActionsForAI(this.playerId);
+			/*
+			new Thread(()->{
+				AI.decideActionsForAI(this.playerId);
+			}).start();*/
 		}
 
 	}

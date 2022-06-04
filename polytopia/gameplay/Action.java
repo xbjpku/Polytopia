@@ -3,6 +3,8 @@ package polytopia.gameplay;
 import java.util.ArrayList;
 
 import polytopia.graphics.Visualizable;
+import polytopia.graphics.Render;
+import polytopia.graphics.Motion;
 import polytopia.gameplay.Player.Tech;
 
 public abstract class Action implements Visualizable{
@@ -1286,6 +1288,8 @@ class ActionUnitMove extends Action {
 		return unit.toString() + " moves";
 	}
 
+	public Tile getDestination() {return destination;}
+
 	public ActionUnitMove(Unit unit, Tile destination) {this.unit = unit; this.destination = destination;}
 }
 
@@ -1315,6 +1319,8 @@ class ActionUnitAttack extends Action {
 
 		return history;
 	}
+
+	public Tile getDestination() {return enemy.getPosition();}
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
@@ -1438,6 +1444,8 @@ class ActionUnitConvert extends Action {
 
 		return history;
 	}
+
+	public Tile getDestination() {return enemy.getPosition();}
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
