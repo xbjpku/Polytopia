@@ -7,9 +7,9 @@ import java.awt.image.*;
 import polytopia.gameplay.Tile;
 
 public class Motion {
-    final static int shakeBias = 10;
+    final static int shakeBias = 8;
     final static int shakeCycle = 100;
-    final static int g = 50;
+    final static int g = 40;
     Tile departureTile;
     Tile destinationTile;
 
@@ -203,7 +203,8 @@ class TextureMotion extends Motion{
                 + pointDeparture.getY() - Render.detaHeight - Render.tileHeight);
                 tmp.scale(0.25f, 0.25f);
                 g2d.drawRenderedImage(texture, tmp);
-            default:return;
+            default:
+                return;
         }
     }
 }

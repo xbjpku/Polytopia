@@ -107,15 +107,20 @@ public class Tile implements Visualizable, Movable {
 
 			current = System.currentTimeMillis();
 			t = Motion.getInstanceOfMovableMotion(this, this, current, current + 200);
+			t.setMotionType(Motion.MotionType.PRESSED);
 			Render.addMotion(t);
 			this.setMotion(t);
+			return;
 		}
 
 		if (this.getOwnerCity() == null)
 			return;
 
+		if (!humanPlayer.getVision().contains(this.getOwnerCity().getOwnerTile())) 
+			return;
+
 		long current = System.currentTimeMillis();
-		Motion t = Motion.getInstanceOfMovableMotion(this.getOwnerCity().getOwnerTile(), this.getOwnerCity().getOwnerTile(), current, current + 200);
+		Motion t = Motion.getInstanceOfMovableMotion(this.getOwnerCity().getOwnerTile(), this.getOwnerCity().getOwnerTile(), current, current + 100);
 		Render.addMotion(t);
 		this.getOwnerCity().getOwnerTile().setMotion(t);
 
@@ -472,7 +477,6 @@ class TilesTest {
 							}
 
 							Tile tile = Game.map.getGrid()[y][x];
-							Render.setSelected(tile);
 							selectedTile = tile;
 							
 							if (tile.getUnit() == null || !preferUnit) {
@@ -480,6 +484,7 @@ class TilesTest {
 								selectedUnit = null;
 								tile.visualize();
 								if (Game.getHumanPlayer().getVision().contains(tile)){
+									Render.setSelected(tile);
 									System.out.printf ("(%d, %d), %s, with %s\n",
 												tile.getX(), tile.getY(), 
 												tile.getTerrainType().toString(),
@@ -487,6 +492,7 @@ class TilesTest {
 												tile.getVariation().toString() : "nothing");
 								}
 								else{
+									Render.setSelected(null);
 									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
 								}
 							}
@@ -494,12 +500,14 @@ class TilesTest {
 								if (Game.getHumanPlayer().getVision().contains(tile)){
 									preferUnit = false;
 									selectedUnit = tile.getUnit();
+									Render.setSelected(tile);
 									System.out.printf ("%s at %d health\n", selectedUnit.toString(), selectedUnit.getHealth());
 									tile.getUnit().visualize();
 								}
 								else{
 									preferUnit = true;
 									selectedUnit = null;
+									Render.setSelected(null);
 									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
 								}
 							}
@@ -555,7 +563,7 @@ class TilesTest {
 				canvas.setBackground (Color.BLACK);
 
 				Game.start(12, (int) (System.currentTimeMillis()), "DRYLAND",
-							new String[]{"Oumaji", "Oumaji"});
+							new String[]{"Oumaji", "Xinxi"});
 
 				frame.setLayout(null);
 				frame.add(canvas);

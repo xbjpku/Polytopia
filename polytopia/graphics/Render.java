@@ -107,23 +107,23 @@ public class Render {
             Tile.TerrainType type = selected.getTerrainType();
             BufferedImage terrain = Texture.getTerrainTexture(selected);
             Point2D point = camera.transPoint(new Point2D.Double((double)selected.getY(), (double)selected.getX()));
-            g2d.setStroke(new BasicStroke(10.0f));
-            g2d.setColor(Color.gray);
+            g2d.setStroke(new BasicStroke(8.0f));
+            g2d.setColor(Color.black);
             int voffset = 0;
             if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
                 voffset = 20;
             int downPointX = (int)point.getX();
             int downPointY = (int)point.getY() - detaHeight + voffset;
-            g2d.drawLine(downPointX, downPointY, downPointX + terrain.getWidth() / 2, downPointY - tileHeight);
-            g2d.drawLine(downPointX, downPointY, downPointX - terrain.getWidth() / 2, downPointY - tileHeight);
-            g2d.drawLine(downPointX, downPointY - 2 * tileHeight, downPointX + terrain.getWidth() / 2, downPointY - tileHeight);
-            g2d.drawLine(downPointX, downPointY - 2 * tileHeight, downPointX - terrain.getWidth() / 2, downPointY - tileHeight);
+            g2d.drawLine(downPointX, downPointY-10, downPointX + terrain.getWidth() / 2-15, downPointY - tileHeight);
+            g2d.drawLine(downPointX, downPointY-10, downPointX - terrain.getWidth() / 2+15, downPointY - tileHeight);
+            g2d.drawLine(downPointX, downPointY - 2 * tileHeight+10, downPointX + terrain.getWidth() / 2-15, downPointY - tileHeight);
+            g2d.drawLine(downPointX, downPointY - 2 * tileHeight+10, downPointX - terrain.getWidth() / 2+15, downPointY - tileHeight);
 
             if(selected.getVariation() instanceof City){
                 City c = (City)selected.getVariation();
                 ArrayList<BoundaryLine> boundary = c.getBoundary(Game.getHumanPlayer());
                 for(BoundaryLine line : boundary){
-                    line.draw(g2d, Color.gray, 15.0f);
+                    line.draw(g2d, Color.black, 12.0f);
                 }
             }
         }
@@ -250,11 +250,11 @@ public class Render {
         ArrayList<City> cities = p.getCities();
         for(City c : cities){
             if (Game.getHumanPlayer().getVision().contains(c.getOwnerTile()))
-                presentCity(g2d, c);
+                presentCity(g2d, c, c.getOwnerPlayer() == Game.getHumanPlayer());
         }
     }
 
-    static private void presentCity(Graphics2D g2d, City c){
+    static private void presentCity(Graphics2D g2d, City c, boolean verbose){
         Point2D point = camera.transPoint(new Point2D.Double((double)c.getOwnerTile().getY(), (double)c.getOwnerTile().getX()));
         int level = c.getLevel();
         int population = c.getPopulation();
@@ -264,15 +264,17 @@ public class Render {
         Color color = c.getOwnerPlayer().getFaction().themeColor;
         //AlphaComposite ac2 = AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 0.5f);
         //g2d.setComposite(ac2);
-        g2d.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 180));
-        g2d.fill3DRect((int)point.getX() - tileWidth / 2, (int)point.getY() - tileHeight - 30, tileWidth - bias, 40,false);
+        g2d.setColor(new Color(color.getRed()*4/5, color.getGreen()*4/5, color.getBlue()*4/5, 180));
+        g2d.fillRect((int)point.getX() - tileWidth / 2, (int)point.getY() - tileHeight - 30, tileWidth - bias, 40);
 
         g2d.setFont(new Font("Avenir", Font.BOLD, 32));
         g2d.setColor(Color.black);
-        g2d.drawString(nameOfCity, (int)point.getX() - nameOfCity.length() * 8+2, (int)point.getY() - tileHeight+2);
+        g2d.drawString(nameOfCity, (int)point.getX() - nameOfCity.length() * 8+3, (int)point.getY() - tileHeight+2);
         g2d.setColor(Color.white);
         g2d.drawString(nameOfCity, (int)point.getX() - nameOfCity.length() * 8, (int)point.getY() - tileHeight);
         
+        if(!verbose)
+            return;
 
         int recLength = tileWidth / (level + 1);
         for(int i = 0; i < level + 1; i++){
@@ -288,8 +290,15 @@ public class Render {
                 else
                     g2d.setColor(Color.white);
             }
-            
-            g2d.fill3DRect((int)point.getX() - tileWidth / 2 + i * recLength, (int)point.getY() - tileHeight + 15, recLength - bias, 40,false);
+            g2d.fillRect((int)point.getX() - tileWidth / 2 + i * recLength, (int)point.getY() - tileHeight + 15, recLength - bias, 40);
+
+            if (i <  c.getUnits().size()) {
+                int circleSize = 20;
+                g2d.setColor(Color.black);
+                g2d.fillOval((int)point.getX() - tileWidth / 2 + i * recLength + (recLength - bias)/2 - circleSize/2,
+                            (int)point.getY() - tileHeight + 15 + 20 - circleSize/2,
+                            circleSize,circleSize);
+            }
         }
     }
 

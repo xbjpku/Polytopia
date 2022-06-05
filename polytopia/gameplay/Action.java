@@ -1682,6 +1682,7 @@ class ActionTrainUnit extends Action {
 	public boolean isPerformableTo(Player player) {
 		return this.isVisibleTo(player)
 				&& type.cost <= player.getStars()
+				&& city.getUnits().size() < city.getLevel()+1
 				&& city.getOwnerTile().getUnit() == null;
 	}
 

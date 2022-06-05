@@ -147,13 +147,14 @@ public class Player {
 		for(City c : cities){
 			ArrayList<Tile> territory = c.getTerritory();
 			for(Tile t : territory){
-				if (viewingPlayer.getVision().contains(t))
-                	terri[t.getY()][t.getX()] = true;
+                terri[t.getY()][t.getX()] = true;
 			}
 		}
         for(int i = 0; i < size; i++){
             for(int j = 0; j < size; j++){
-                if(terri[i][j] == false) continue;
+                if(terri[i][j] == false
+					|| !viewingPlayer.getVision().contains(Game.map.getGrid()[j][i])) 
+					continue;
                 if(i - 1 < 0 || terri[i - 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.LEFTUP));
                 if(i + 1 >= size || terri[i + 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTDOWN));
                 if(j - 1 < 0 || terri[i][j - 1] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTUP));
@@ -194,10 +195,12 @@ public class Player {
 		else {
 			// Bot player.
 			// Invoke AI to take actions.
+			
 			/*
 			new Thread(()->{
 				AI.decideActionsForAI(this.playerId);
-			}).start();*/
+			}).start();
+			*/
 		}
 
 	}

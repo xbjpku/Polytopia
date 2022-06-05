@@ -63,7 +63,7 @@ public class City implements TileVariation {
         for(int i = 0; i < size; i++){
             for(int j = 0; j < size; j++){
                 if(terri[i][j] == false
-					|| !viewingPlayer.getVision().contains(Game.map.getGrid()[i][j])) 
+					|| !viewingPlayer.getVision().contains(Game.map.getGrid()[j][i])) 
 					continue;
                 if(i - 1 < 0 || terri[i - 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.LEFTUP));
                 if(i + 1 >= size || terri[i + 1][j] == false) lines.add(new BoundaryLine(i, j, BoundaryLine.Side.RIGHTDOWN));

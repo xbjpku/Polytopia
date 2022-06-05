@@ -318,6 +318,13 @@ class ConseqCaptureVillage extends Consequence {
 		City city = new City(Game.map.getGrid(), subject, player);
 		subject.setVariation(city);
 		player.addCity(city);
+
+		// transfer unit to the new city
+		Unit unit = subject.getUnit();
+		City oldCity = unit.getOwnerCity();
+		if (oldCity != null) 
+			oldCity.getUnits().remove(unit);
+		city.getUnits().add(unit);
 	}
 
 	public void log(ArrayList<Consequence> history) {
@@ -353,10 +360,24 @@ class ConseqCaptureCity extends Consequence {
 		City city = (City)(subject.getVariation());
 		Player oldPlayer = city.getOwnerPlayer();
 
+		for (Unit unit : city.getUnits()) {
+			unit.setOwnerCity(null);
+			if (unit.getCarryUnit() != null)
+				unit.getCarryUnit().setOwnerCity(null);
+		}
+		city.getUnits().clear();
+
 		oldPlayer.getCities().remove(city);
 		player.getCities().add(city);
 
 		city.setOwnerPlayer(player);
+
+		// transfer unit to the new city
+		Unit unit = subject.getUnit();
+		City oldCity = unit.getOwnerCity();
+		if (oldCity != null) 
+			oldCity.getUnits().remove(unit);
+		city.getUnits().add(unit);
 	}
 
 	public void log(ArrayList<Consequence> history) {
@@ -438,7 +459,9 @@ class ConseqExploreRuins extends Consequence {
 				prompt = "Unlock " + tech.toString();
 				break;
 			case 2:
-				new ConseqGrowPopulation(subject, player.getCapital(), 3).log(history);
+				new ConseqGrowPopulation(subject, player.getCapital(), 1).log(history);
+				new ConseqGrowPopulation(subject, player.getCapital(), 1).log(history);
+				new ConseqGrowPopulation(subject, player.getCapital(), 1).log(history);
 				prompt = "Grow Population";
 				break;
 			case 3:
@@ -1024,7 +1047,7 @@ class ConseqUnitRecover extends Consequence {
 	}
 
 	public void apply() {
-		unit.setHealth (Math.max(unit.getMaxHealth(), unit.getHealth() + amount));
+		unit.setHealth (Math.min(unit.getMaxHealth(), unit.getHealth() + amount));
 		
 	}
 
@@ -1060,7 +1083,7 @@ class ConseqUnitMove extends Consequence {
 			unit.setFlipped(true);
 
 		long current = System.currentTimeMillis();
-		long elapsed = TileMap.getDistance(unit.getPosition(), destination)*120;
+		long elapsed = TileMap.getDistance(unit.getPosition(), destination)*80;
 		Motion t = Motion.getInstanceOfMovableMotion(unit, unit.getPosition(), destination, current, current + elapsed);
 		Render.addMotion(t);
 		unit.setMotion(t);
@@ -1080,20 +1103,26 @@ class ConseqUnitMove extends Consequence {
 
 		// Set UNIT's attackable and movable
 		boolean hasDash = false;
+		boolean hasPersist = false;
 		Skill[] skills = unit.getSkills();
-		for (int i=0; i<skills.length; i++)
+		for (int i=0; i<skills.length; i++) {
 			if (skills[i] == Unit.Skill.DASH) {
 				hasDash = true;
 				skills[i] = null;
-				break;
 			}
+			if (skills[i] == Unit.Skill.PERSIST)
+				hasPersist = true;
+		}
 		
 		boolean hasEnemy = !(unit.searchEnemy().isEmpty());
 
 		if (hasDash && hasEnemy)
 			unit.setAttackable(true);
+		else if (hasPersist && hasEnemy)
+			unit.setAttackable(true);
 		else
 			unit.setAttackable(false);
+
 		unit.setMovable(false);
 	}
 
@@ -1168,6 +1197,8 @@ class ConseqUnitAttack extends Consequence {
 	public void apply() {
 		// Apply damage
 		enemy.setHealth (enemy.getHealth() - attackResult);
+		if (enemy.getHealth() <= 0)
+			unit.setKills(unit.getKills()+1);
 
 		// Set UNIT's attackable and movable
 		boolean hasEscape = false;
@@ -1277,6 +1308,8 @@ class ConseqUnitRetaliate extends Consequence {
 
 	public void apply() {
 		enemy.setHealth (enemy.getHealth() - defenseResult);
+		if (enemy.getHealth() <= 0)
+			unit.setKills(unit.getKills()+1);
 	}
 
 	public void log(ArrayList<Consequence> history) {

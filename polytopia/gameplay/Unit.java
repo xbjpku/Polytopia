@@ -82,6 +82,11 @@ public class Unit implements Visualizable, Movable {
 	public Motion getMotion() {return this.motion;}
 	// Selection response
 	public void visualize() {
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfMovableMotion(this, this.position, current, current + 100);
+		Render.addMotion(t);
+		this.setMotion(t);
 		
         int size = Game.map.getSize();
 		Action[][] actionMap = new Action[size][size];
