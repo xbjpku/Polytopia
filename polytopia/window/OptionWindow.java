@@ -2,24 +2,27 @@ package polytopia.window;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
+import java.io.IOException;
 import java.awt.Toolkit;
 
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-
 
 import polytopia.window.MainPanel;
 import polytopia.utils.SoundAdapter;
 
 public class OptionWindow extends JFrame implements MouseListener {
 
-    boolean hasSoundEffect, hasAmbience, hasTribeMusic;
+    static boolean hasSoundEffect = true, hasAmbience = true, hasTribeMusic = true;
 
-    int volume;
+    static int volume = 50;
 
     JLabel MainMenu, SoundEffect, Ambience, TribeMusic;
 
@@ -29,29 +32,40 @@ public class OptionWindow extends JFrame implements MouseListener {
 
     JLabel volumeText;
 
-    public OptionWindow() {
+    public JFrame parent = null;
 
-        hasSoundEffect = true;
-        hasAmbience = true;
-        hasTribeMusic = true;
+    public OptionWindow(JFrame parent) {
 
-        //this.getGraphicsConfiguration().getDevice().setFullScreenWindow(this);
-        this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
+        this.parent = parent;
+
+        this.getGraphicsConfiguration().getDevice().setFullScreenWindow(this);
+        this.setLayout(null);
+        //this.setSize(Toolkit.getDefaultToolkit().getScreenSize());
 
         int width = this.getWidth(), height = this.getHeight();
+
+        MainMenu = new ButtonLabel(null, width / 256, width / 256, width / 24, width / 24);
+        Image MainMenuImage;
+        try {
+            MainMenuImage = ImageIO.read(new File("./resources/window/exitbutton.png"));
+            MainMenu.setIcon(new ImageIcon(MainMenuImage));
+        } catch (IOException e) {}
+        MainMenu.setOpaque(false);
+        MainMenu.addMouseListener(this);
+        this.add(MainMenu);
 
         int dx = 3 * width / 8, dy = 7 * height / 24;
         int dw = 5 * width / 96, dh = dw / 2;
 
-        SoundEffect = new ButtonLabel("ON", dx, dy, dw, dh);
+        SoundEffect = new ButtonLabel(hasSoundEffect ? "ON" : "OFF", dx, dy, dw, dh);
         SoundEffect.addMouseListener(this);
         this.add(SoundEffect);
 
-        Ambience = new ButtonLabel("ON", dx + dw + 9 * dw / 10, dy, dw, dh);
+        Ambience = new ButtonLabel(hasAmbience ? "ON" : "OFF", dx + dw + 9 * dw / 10, dy, dw, dh);
         Ambience.addMouseListener(this);
         this.add(Ambience);
 
-        TribeMusic = new ButtonLabel("ON", dx + 2 * (dw + 9 * dw / 10), dy, dw, dh);
+        TribeMusic = new ButtonLabel(hasTribeMusic ? "ON" : "OFF", dx + 2 * (dw + 9 * dw / 10), dy, dw, dh);
         TribeMusic.addMouseListener(this);
         this.add(TribeMusic);
 
@@ -80,6 +94,8 @@ public class OptionWindow extends JFrame implements MouseListener {
         this.add(volumeText);
 
         MainPanel panel = new MainPanel("./resources/window/darkmain.png");
+        panel.setSize(this.getSize());
+
         this.add(panel);
 
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -126,22 +142,21 @@ public class OptionWindow extends JFrame implements MouseListener {
         return b ? "ON" : "OFF";
     }
 
-    public static void main(String[] args) {
-        new OptionWindow();
-    }
 
     @Override
     public void mouseClicked(MouseEvent e) {
         if (e.getSource().equals(SoundEffect)) {
             hasSoundEffect = !hasSoundEffect;
             SoundEffect.setText(getText(hasSoundEffect));
-            dispose();
         } else if (e.getSource().equals(Ambience)) {
             hasAmbience = !hasAmbience;
             Ambience.setText(getText(hasAmbience));
         } else if (e.getSource().equals(TribeMusic)) {
             hasTribeMusic = !hasTribeMusic;
             TribeMusic.setText(getText(hasTribeMusic));
+        } else if (e.getSource().equals(MainMenu)) {
+            parent.setVisible(true);
+            this.setVisible(false);
         }
     }
 

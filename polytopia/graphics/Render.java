@@ -131,8 +131,10 @@ public class Render {
         for(Player player : Game.players){
             presentPlayerCities(g2d, player);
             ArrayList<Unit> units = player.getUnits();
+
             for(Unit u : units){
                 Tile tile = u.getPosition();
+                int health = u.getHealth();
                 if (!Game.getHumanPlayer().getVision().contains(tile))
                     continue;
                 Point2D point = camera.transPoint(new Point2D.Double((double)tile.getY(), (double)tile.getX()));
@@ -146,11 +148,24 @@ public class Render {
                 int voffset = 210;
                 if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
                     voffset = 180;
+
+                String textureName = u.toString();
+                if (u.getOwnerPlayer() == Game.getHumanPlayer())
+                    textureName = String.join("-", textureName, (u.isMovable() || u.isAttackable() ? "active" : "inactive"));
                 
-                BufferedImage unitTexture = Texture.getTextureByName(u.toString());
+                BufferedImage unitTexture = Texture.getTextureByName(textureName);
                 AffineTransformOp op = u.isFlipped() ? new AffineTransformOp(new AffineTransform(-1, 0, 0, 1, unitTexture.getWidth(), 0),null) : null;
                 g2d.drawImage (unitTexture, op, (int)point.getX() - unitTexture.getWidth()/2, 
                 (int)point.getY() - unitTexture.getHeight() - voffset + Integer.min(tileHeight, unitTexture.getHeight()/2));
+
+                // draw health
+                g2d.setFont(new Font("Avenir", Font.BOLD, 32));
+                g2d.setColor(Color.black);
+                g2d.drawString("" + health, (int)point.getX() - unitTexture.getWidth() + 2, 
+                (int)point.getY() - unitTexture.getHeight() - voffset + Integer.min(tileHeight, unitTexture.getHeight()/2) + 22);
+                g2d.setColor(Color.white);
+                g2d.drawString("" + health, (int)point.getX() - unitTexture.getWidth(), 
+                (int)point.getY() - unitTexture.getHeight() - voffset + Integer.min(tileHeight, unitTexture.getHeight()/2) + 20);
             }
         }
 
@@ -177,6 +192,10 @@ public class Render {
                 if(m instanceof TextureMotion){
                     TextureMotion tm = (TextureMotion) m;
                     tm.drawTexture(g2d);
+                }
+                if(m instanceof StringMotion){
+                    StringMotion sm = (StringMotion) m;
+                    sm.drawString(g2d);
                 }
             }
         }
@@ -259,6 +278,8 @@ public class Render {
         int level = c.getLevel();
         int population = c.getPopulation();
         String nameOfCity = c.getName();
+        int stars = c.getStarsPerTurn();
+        BufferedImage starTexture = Texture.getTextureByName("STAR");
         
         int bias = 5;
         Color color = c.getOwnerPlayer().getFaction().themeColor;
@@ -272,6 +293,14 @@ public class Render {
         g2d.drawString(nameOfCity, (int)point.getX() - nameOfCity.length() * 8+3, (int)point.getY() - tileHeight+2);
         g2d.setColor(Color.white);
         g2d.drawString(nameOfCity, (int)point.getX() - nameOfCity.length() * 8, (int)point.getY() - tileHeight);
+
+        AffineTransformOp op = new AffineTransformOp(AffineTransform.getScaleInstance(0.1f, 0.1f), null);
+        g2d.drawImage (starTexture, op, (int)point.getX() + 70, (int)point.getY() - tileHeight - 30);
+        g2d.setFont(new Font("Avenir", Font.BOLD, 32));
+        g2d.setColor(Color.black);
+        g2d.drawString(String.valueOf(stars), (int)point.getX() + 108 + 2, (int)point.getY() - tileHeight + 2);
+        g2d.setColor(Color.yellow);
+        g2d.drawString(String.valueOf(stars), (int)point.getX() + 108, (int)point.getY() - tileHeight);
         
         if(!verbose)
             return;

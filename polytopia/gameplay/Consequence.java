@@ -3,6 +3,7 @@ package polytopia.gameplay;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.function.*;
+import java.awt.Color;
 
 import polytopia.graphics.Visualizable;
 import polytopia.graphics.Motion;
@@ -33,6 +34,9 @@ class ConseqRemoveResource extends Consequence {
 	private Resource subject;
 
 	public void visualize() {
+
+		if (!Game.getHumanPlayer().getVision().contains(subject.getOwnerTile()))
+			return;
 
 		/* Note for Shaw: 
 			Fog Animation 
@@ -115,7 +119,10 @@ class ConseqBuildImprovement extends Consequence {
 	private int level;
 
 	public void visualize() {
-		
+
+		if (!Game.getHumanPlayer().getVision().contains(subject))
+			return;
+
 		/* Note for Shaw: 
 			Fog Animation 
 			(use the FOG texture, make a pattern like this:
@@ -192,7 +199,7 @@ class ConseqBuildImprovement extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 5;
+		return 1;
 	}
 
 	public ConseqBuildImprovement(Tile subject, Improvement.ImprovementType type, int level) {
@@ -212,6 +219,9 @@ class ConseqRemoveImprovement extends Consequence {
 
 	public void visualize() {
 		
+		if (!Game.getHumanPlayer().getVision().contains(subject.getOwnerTile()))
+			return;
+
 		/* Note for Shaw: 
 			Fog Animation 
 			(use the FOG texture, make a pattern like this:
@@ -312,6 +322,12 @@ class ConseqCaptureVillage extends Consequence {
 
 	public void visualize() {
 
+		if (!Game.getHumanPlayer().getVision().contains(subject))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -354,6 +370,12 @@ class ConseqCaptureCity extends Consequence {
 
 	public void visualize() {
 
+		if (!Game.getHumanPlayer().getVision().contains(subject))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -422,6 +444,12 @@ class ConseqExploreRuins extends Consequence {
 
 	public void visualize() {
 
+		if (!Game.getHumanPlayer().getVision().contains(subject))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -497,6 +525,9 @@ class ConseqGrowPopulation extends Consequence {
 
 	public void visualize() {
 
+		if (Game.getHumanPlayer() != Game.getCurrentPlayer())
+			return;
+
 		/* Note for Shaw: 
 			Population Animation
 			(use the Faction texture, like /resources/Xinxi/Xinxi.png, which is not yet added
@@ -567,7 +598,7 @@ class ConseqGrowPopulation extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 30;
+		return 2*value + (subject.getLevel() < 3 ? 1 : 0);
 	}
 
 	public int getValue() {return this.value;}
@@ -589,6 +620,9 @@ class ConseqLosePopulation extends Consequence {
 	private int value;
 
 	public void visualize() {
+
+		if (Game.getHumanPlayer() != Game.getCurrentPlayer())
+			return;
 
 		/* Note for Shaw: 
 			Tile Jump Animation.
@@ -618,7 +652,7 @@ class ConseqLosePopulation extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return -5;
+		return -2*value;
 	}
 
 	public int getValue() {return this.value;}
@@ -639,6 +673,10 @@ class ConseqUpgradeCity extends Consequence {
 	private int newLevel;
 
 	public void visualize() {
+
+		if (Game.getHumanPlayer() != Game.getCurrentPlayer())
+			return;
+
 		//TODO: Implements Event, so that a Dialog is shown here to inform
 		//		human players about this consequence. It is even possible to
 		//		insert new consequences with an event, which can be handled 
@@ -734,7 +772,7 @@ class ConseqUpgradeCity extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 50;
+		return newLevel;
 	}
 
 	public ConseqUpgradeCity(City subject, int newLevel) {
@@ -755,14 +793,24 @@ class ConseqGainStars extends Consequence {
 
 	public void visualize() {
 
+		if (Game.getHumanPlayer() != Game.getCurrentPlayer())
+			return;
+
 		/* Note for Shaw: 
 			Stars Animation:
 			Display a star texture (not included yet), and move it from SOURCE to upper
 			middle of the *screen*, along a curve, accelerating. 
 			NON-BLOCKING: Does not wait for the animation to complete. */
-		long current = System.currentTimeMillis();
-		Motion t = Motion.getInstanceOfTextureMotion("STAR", source,  current, current + 5000);
-		Render.addMotion(t);
+		new Thread(()->{
+
+			for (int i = 0; i < amount; i++) {
+				long current = System.currentTimeMillis();
+				Motion t = Motion.getInstanceOfTextureMotion("STAR", source,  current, current + 5000);
+				Render.addMotion(t);
+				try {Thread.sleep(100);} catch(Exception e){}
+			}
+			
+		}).start();
 
 	}
 
@@ -796,6 +844,9 @@ class ConseqChangeTerrain extends Consequence {
 	private Tile.TerrainType type;
 
 	public void visualize() {
+
+		if (!Game.getHumanPlayer().getVision().contains(subject))
+			return;
 
 		/* Note for Shaw: 
 			Fog Animation
@@ -845,6 +896,8 @@ class ConseqUnlockTech extends Consequence {
 	public void visualize() {
 		/* Note for Shaw: 
 			Nothing to be done. */
+		
+		// TODO: Hint
 	}
 
 	public void apply() {
@@ -880,6 +933,10 @@ class ConseqDiscoverTile extends Consequence {
 		/* Note for Shaw: 
 			Fog Animation
 			NON-BLOCKING */
+		
+		if(player != Game.getHumanPlayer())
+			return;
+			
 		long current = System.currentTimeMillis();
 		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
 		Render.addMotion(t);
@@ -898,7 +955,7 @@ class ConseqDiscoverTile extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return 1;
 	}
 
 	public ConseqDiscoverTile(Tile subject, Player player) {
@@ -923,7 +980,12 @@ class ConseqUnitUpgrade extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Upgrade Animation
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", unit.getPosition(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -958,7 +1020,12 @@ class ConseqUpgradeBoat extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Upgrade Animation
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", unit.getPosition(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -995,7 +1062,12 @@ class ConseqUpgradeShip extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Upgrade Animation
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", unit.getPosition(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -1023,7 +1095,7 @@ class ConseqUpgradeShip extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 10;
+		return 20;
 	}
 
 	public ConseqUpgradeShip(Unit unit) {
@@ -1043,7 +1115,15 @@ class ConseqUnitRecover extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Heal Animation
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		int value = Math.min((unit.getMaxHealth() - unit.getHealth()), amount);
+		if (value > 0) {
+			long current = System.currentTimeMillis();
+			Motion t = Motion.getInstanceOfStringMotion(String.valueOf(value), unit.getPosition(), current, current + 500, Color.CYAN);
+			Render.addMotion(t);
+		}
 	}
 
 	public void apply() {
@@ -1058,7 +1138,7 @@ class ConseqUnitRecover extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return 1;
 	}
 
 	public ConseqUnitRecover(Unit unit, int amount) {
@@ -1077,13 +1157,17 @@ class ConseqUnitMove extends Consequence {
 	private Tile destination;
 
 	public void visualize() {
+		
 		if (destination.getY()-unit.getPosition().getY() > destination.getX()-unit.getPosition().getX())
 			unit.setFlipped(false);
 		if (destination.getY()-unit.getPosition().getY() < destination.getX()-unit.getPosition().getX())
 			unit.setFlipped(true);
 
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
 		long current = System.currentTimeMillis();
-		long elapsed = TileMap.getDistance(unit.getPosition(), destination)*80;
+		long elapsed = TileMap.getDistance(unit.getPosition(), destination)*100;
 		Motion t = Motion.getInstanceOfMovableMotion(unit, unit.getPosition(), destination, current, current + elapsed);
 		Render.addMotion(t);
 		unit.setMotion(t);
@@ -1191,7 +1275,49 @@ class ConseqUnitAttack extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Attack animation
+
+		Tile unitTile = unit.getPosition();
+		Tile enemyTile = enemy.getPosition();
+
+		if (enemyTile.getY()-unitTile.getY() > enemyTile.getX()-unitTile.getX()) {
+			unit.setFlipped(false);
+			enemy.setFlipped(true);
+		}
+		if (enemyTile.getY()-unitTile.getY() < enemyTile.getX()-unitTile.getX()) {
+			unit.setFlipped(true);
+			enemy.setFlipped(false);
+		}
+
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t;
+		switch(unit.getType()) {
+			case ARCHER:
+			case BOAT:
+			case SHIP:
+				t = Motion.getInstanceOfTextureMotion("ARROW", unit.getPosition(), enemy.getPosition(),  current, current + 500);
+				t.setMotionType(MotionType.TRANSLATE); 
+				break;
+			case CATAPULT:
+			case BATTLESHIP:
+				t = Motion.getInstanceOfTextureMotion("BULLET", unit.getPosition(), enemy.getPosition(),  current, current + 500);
+				break;
+			default: 
+				t = Motion.getInstanceOfTextureMotion("SWORD", unit.getPosition(), enemy.getPosition(),  current, current + 300);
+		}
+		Render.addMotion(t);
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
+
+		current = System.currentTimeMillis();
+		t = Motion.getInstanceOfStringMotion(String.valueOf(attackResult), enemy.getPosition(), current, current + 500, Color.RED);
+		Render.addMotion(t);
+
 	}
 
 	public void apply() {
@@ -1270,7 +1396,7 @@ class ConseqUnitAttack extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return attackResult / 2;
 	}
 
 	public ConseqUnitAttack(Unit unit, Unit enemy) {
@@ -1303,7 +1429,36 @@ class ConseqUnitRetaliate extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Attack animation
+
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		long current = System.currentTimeMillis();
+		Motion t;
+		switch(unit.getType()) {
+			case ARCHER:
+			case BOAT:
+			case SHIP:
+				t = Motion.getInstanceOfTextureMotion("ARROW", unit.getPosition(), enemy.getPosition(),  current, current + 500);
+				t.setMotionType(MotionType.TRANSLATE); 
+				break;
+			case CATAPULT:
+			case BATTLESHIP:
+				t = Motion.getInstanceOfTextureMotion("BULLET", unit.getPosition(), enemy.getPosition(),  current, current + 500);
+				break;
+			default: 
+				t = Motion.getInstanceOfTextureMotion("SWORD", unit.getPosition(), enemy.getPosition(),  current, current + 300);
+		}
+		Render.addMotion(t);
+		synchronized(t){
+			try{
+				t.wait();
+			}catch(Exception e){}
+		}
+
+		current = System.currentTimeMillis();
+		t = Motion.getInstanceOfStringMotion(String.valueOf(defenseResult), enemy.getPosition(), current, current + 500, Color.RED);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -1323,7 +1478,7 @@ class ConseqUnitRetaliate extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return defenseResult / 2;
 	}
 
 	public ConseqUnitRetaliate(Unit unit, Unit enemy, int defenseResult) {
@@ -1345,7 +1500,25 @@ class ConseqUnitConvert extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Upgrade animation
+
+		Tile unitTile = unit.getPosition();
+		Tile enemyTile = enemy.getPosition();
+
+		if (!Game.getHumanPlayer().getVision().contains(unit.getPosition()))
+			return;
+
+		if (enemyTile.getY()-unitTile.getY() > enemyTile.getX()-unitTile.getX()) {
+			unit.setFlipped(false);
+			enemy.setFlipped(true);
+		}
+		if (enemyTile.getY()-unitTile.getY() < enemyTile.getX()-unitTile.getX()) {
+			unit.setFlipped(true);
+			enemy.setFlipped(false);
+		}
+
+		long current = System.currentTimeMillis();
+		Motion t = Motion.getInstanceOfTextureMotion("FOG", enemy.getPosition(), current, current + 400);
+		Render.addMotion(t);
 	}
 
 	public void apply() {
@@ -1400,7 +1573,7 @@ class ConseqUnitConvert extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return enemy.getCost() * 2;
 	}
 
 	public ConseqUnitConvert(Unit unit, Unit enemy) {
@@ -1420,7 +1593,6 @@ class ConseqUnitDeath extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
-		// TODO: Death animation
 	}
 
 	public void apply() {
@@ -1449,9 +1621,9 @@ class ConseqUnitDeath extends Consequence {
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
 		if (killer == unit.getOwnerPlayer())
-			return -10;
+			return -unit.getCost()*2;
 		else
-			return 10;
+			return unit.getCost()*2;
 	}
 
 	public ConseqUnitDeath(Unit unit, Player killer) {
@@ -1506,7 +1678,7 @@ class ConseqUnitCarry extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		return Math.min(Game.getTurn() / 10, 3);
 	}
 
 	public ConseqUnitCarry(Unit unit) {
@@ -1560,6 +1732,10 @@ class ConseqUnitLand extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
+		if (unit.getType() == Unit.UnitType.SHIP)
+			return -2 + Math.min(2, Game.getTurn() / 20);
+		if (unit.getType() == Unit.UnitType.BATTLESHIP)
+			return -5 + Math.min(5, Game.getTurn() / 20);
 		return 0;
 	}
 
@@ -1625,6 +1801,9 @@ class ConseqUnitSpawn extends Consequence {
 
 	public void visualize() {
 		/* Note for Shaw */
+		if (!Game.getHumanPlayer().getVision().contains(tile))
+			return;
+
 		long current = System.currentTimeMillis();
 		Motion t = Motion.getInstanceOfTextureMotion("FOG", tile, current, current + 400);
 		Render.addMotion(t);
@@ -1687,7 +1866,37 @@ class ConseqUnitSpawn extends Consequence {
 
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
-		return 0;
+		boolean preferRanged = true;
+		int preferDefense = 0;
+		for (Tile t : TileMap.getSurroundings(Game.map.getGrid(), tile.getX(), tile.getY(), 2))
+			if (t.hasEnemy(player)) {
+				preferRanged = false;
+				preferDefense++;
+			}
+
+
+		switch (type) {
+			case WARRIOR:
+				return 2 + Math.max((20 - Game.getTurn())/20, 0);
+			case ARCHER:
+				return 2 + (preferRanged ? 1 : 0);
+			case CATAPULT:
+				return 6 + (preferRanged ? 0 : -4);
+			case SWORDSMAN:
+				return 4;
+			case RIDER:
+				return 4 - preferDefense/2;
+			case MINDBENDER:
+				return 5 - preferDefense;
+			case KNIGHT:
+				return 6 - preferDefense/2;
+			case DEFENDER:
+				return 2 + preferDefense;
+			case GIANT:
+				return 10;
+			default:
+				return 0;
+		}
 	}
 
 	public ConseqUnitSpawn(Tile tile, Unit.UnitType type, Player player, City city) {
@@ -1723,7 +1932,7 @@ class ConseqClaimValuableTile extends Consequence {
 	public int getReward() {
 		//TODO: Bot use this value for making decisions
 		//This should be worth a lot of points
-		return 100;
+		return 20;
 
 	}
 

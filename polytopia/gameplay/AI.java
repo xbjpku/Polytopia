@@ -1,9 +1,9 @@
 package polytopia.gameplay;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
-import javax.swing.SwingWorker.StateValue;
-import javax.xml.namespace.QName;
 
 import polytopia.gameplay.Player.Tech;
 import polytopia.gameplay.Tile.TerrainType;
@@ -30,6 +30,14 @@ class Actions{
 	public Action getAction(int actionId){
 		return actionList.get(actionId);
 	}
+	public void clear(){
+		actionList.clear();
+	}
+	public boolean isEmpty(){
+		if(actionList.size() == 0)
+			return true;
+		return false;
+	}
 }
 
 class KnapsackItem{
@@ -50,41 +58,67 @@ class KnapsackItem{
 }
 
 public class AI {
+    public static int doSleep = 300;
 	public static int remainStars;
-	public static int knapsack[];
-	public static int recordItem[];
+	public static int knapsack[][];
+	public static int recordItem[][];
 	public static KnapsackItem itemList[];
-	public static int tempKnapsack[];
+	public static int tempKnapsack[][];
 	public static int vision[] = {0, 0, 0, 0};
 	public static int notChanged[] = {0, 0, 0, 0};
+	public static int value[][];
+	public static int used[][];
+	public static int size;
+	public static int extraValueForCommand;
 	static{
-		knapsack = new int[1005];
-		tempKnapsack = new int[1005];
-		recordItem = new int[1005];
+		size = Game.map.getSize();
+		knapsack = new int[305][1005];
+		tempKnapsack = new int[305][1005];
+		recordItem = new int[305][1005];
 		itemList =  new KnapsackItem[1005];
+        for (int i = 0; i < 1005; i++)
+            itemList[i] = new KnapsackItem();
+
+		value = new int[size][size];
+		used = new int[size][size];
+		extraValueForCommand = 2;
 	}
 	public static void GainStarActions(int playerId){
 		Player p = Game.players[playerId];
 		for(City c : p.getCities())
-			for(Tile t : c.getTerritory())
-				for(Action a : t.getVariation().getActions())
+			for(Tile t : c.getTerritory()) {
+                if (t.getVariation() == null)
+                    continue;
+                ArrayList<Action> shuffleActions = new ArrayList<>(Arrays.asList(t.getVariation().getActions()));
+                Collections.shuffle(shuffleActions);
+                for(Action a : shuffleActions){
+					if(a.isPerformableTo(p) == false)
+						continue;
+					if(a instanceof ActionDestroyImprovement)
+						continue;
+					if(a instanceof ActionClearForest)
+						continue;
 					for(Consequence con : a.getConsequences(p))
-                        
-//TODO: Neglect certain actions
-
 						if(con instanceof ConseqGainStars)
 						{
-							a.apply(p);
+                            if (a.isPerformableTo(p))
+							    a.apply(p);
+                            if(doSleep > 0) {System.out.println(a.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
 							break;
 						}
+				}
+            }
+					
 	}
 	public static void UnlockTechActions(int playerId){
 		Player p = Game.players[playerId];
-		int maxStarUse = remainStars / 3;
+		int maxStarUse = remainStars * (Game.getTurn() + 29)/ (3 * Game.getTurn() + 27);
 		int itemnum = 0;
 		for(int i = 0; i <= 1000; i ++){
-			knapsack[i] = -100000;
-			recordItem[i] = -1;
+            for(int j = 0; j <= 100; j ++){
+                knapsack[j][i] = -100000;
+			    recordItem[j][i] = -1;
+            }
 			itemList[i].setValue(0,0);
 		}
 		int early = 1;
@@ -232,146 +266,306 @@ public class AI {
 							cnt ++;
 			}
 			itemList[itemnum++].setValue(cnt, te.getCost(p));
+            System.out.printf("%s %d\n", te.toString(), cnt);
 		}
+        knapsack[0][0] = 0;
 		for(int i = 0; i < itemnum; i ++){
-			for(int j = itemList[i].cost; j <= maxStarUse; j ++){
-				if(knapsack[j - itemList[i].cost] + itemList[i].totalReward > knapsack[j]){
-					knapsack[j] = knapsack[j - itemList[i].cost] + itemList[i].totalReward;
-					recordItem[j] = i;
+            //System.out.printf ("i %d %d %d\n", i, itemList[i].cost, maxStarUse);
+			for(int j = maxStarUse; j >= 0; j --){
+                knapsack[i+1][j] = knapsack[i][j];
+                recordItem[i+1][j] = -1;
+                if(j < itemList[i].cost)
+                    continue;
+                //System.out.printf ("j %d\n", j);
+				if(knapsack[i][j - itemList[i].cost] + itemList[i].totalReward > knapsack[i+1][j]){
+					knapsack[i+1][j] = knapsack[i][j - itemList[i].cost] + itemList[i].totalReward;
+					recordItem[i+1][j] = i;
 				}
 			}
 		}
 		int maxKnapsackReward = -1;
 		int maxKnapsackSpot = 0;
 		for(int i = 0; i < maxStarUse; i ++){
-			if(maxKnapsackReward < knapsack[i]){
-				maxKnapsackReward = knapsack[i];
+			if(maxKnapsackReward < knapsack[itemnum][i]){
+				maxKnapsackReward = knapsack[itemnum][i];
 				maxKnapsackSpot = i;
 			}
 		}
-		while(maxKnapsackSpot > 0){
-			int techId = recordItem[maxKnapsackSpot];
-			p.addTech((Tech.getUnlockableTechs(p)).get(techId));
+
+		for(int i = itemnum; i > 0; i --){
+			int techId = recordItem[i][maxKnapsackSpot];
+            if (techId == -1)
+                continue;
+			Tech tech = (Tech.getUnlockableTechs(p)).get(techId);
+			Action a = new ActionUnlockTech(tech);
+            if (a.isPerformableTo(p))
+                a.apply(p);
+            if(doSleep > 0) {System.out.println(a.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
 			maxKnapsackSpot = maxKnapsackSpot - itemList[techId].cost;
 		}
 	}
 	public static void CommandUnitActions(int playerId){
-		Actions ret = new Actions();
+		Actions actionList = new Actions();
 		Player p = Game.players[playerId];
+		for(Unit u : p.getUnits())
+			for(Action a : u.getActions())
+				if(a instanceof ActionUnitUpgrade){
+                    if (a.isPerformableTo(p))
+					    a.apply(p);
+                    if(doSleep > 0) {System.out.println(a.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
+					break;
+				}
+		for(Unit u : p.getUnits()){
+			if(u.getHealth() <= u.getMaxHealth() * 3 / 10){
+				for(Action a : u.getActions())
+					if(a instanceof ActionUnitRecover){
+                        if (a.isPerformableTo(p))
+						    a.apply(p);
+                        if(doSleep > 0) {System.out.println(a.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
+						break;
+					}
+			}
+		}
+		Action maxRewardAction;
+		int maxReward = 0;
+		while(true){
+			actionList.clear();
+			maxRewardAction = null;
+			maxReward = -1;
+			for(int i = 0; i < size; i ++){
+				for(int j = 0; j < size; j ++){
+					value[i][j] = 0;
+					used[i][j] = 0;
+				}
+			}
+			for(Tile t : p.getVision()){
+				used[t.getX()][t.getY()] = 1;
+			}
+			for(int i = 4; i >= 1; i --){
+                ArrayList<Tile> border = new ArrayList<Tile>();
+				for(Tile t : p.getVision()){
+                    if (used[t.getX()][t.getY()] == 0)
+                        continue;
+					for(Tile t_1 : TileMap.getInnerRing(Game.map.getGrid(), t.getX(), t.getY())){
+						int x = t_1.getX();
+						int y = t_1.getY();
+						if(used[x][y] == 0){
+							value[t.getX()][t.getY()] = i;
+							border.add(t);
+                            break;
+						}
+					}
+				}
+                for (Tile t : border)
+                    used[t.getX()][t.getY()] = 0;
+			}
+			for(Unit u : p.getUnits()){
+				for(Action a : u.getActions()){
+					if(a.isPerformableTo(p) == false)
+						continue;
+                    //if (a instanceof ActionUnitRecover || a instanceof ActionUnitUpgrade)
+                    //    continue;
+					actionList.addOne(a);
+					int actionvalue = 0;
+					if(a instanceof ActionUnitMove){
+						Tile t = ((ActionUnitMove)a).getDestination();
+						int x = t.getX();
+						int y = t.getY();
+						actionvalue += value[x][y];
+						int flag = 0;
+						for(int i = 0; i < size; i ++){
+							for(int j = 0; j < size; j ++){
+								if(Math.max(Math.abs(x - i), Math.abs(y - j)) == u.getRange()){
+									Tile t_1 = Game.map.getGrid()[i][j];
+									if(t_1.hasEnemy(p)){
+										actionvalue += extraValueForCommand;
+										flag = 1;
+									}
+								}
+                                if(flag == 1) break;
+							}
+							if(flag == 1) break;
+						}
 
-// TODO: Get Unit Actions
-
+					}
+					for(Consequence con : a.getConsequences(p)){
+						actionvalue += con.getReward();
+					}
+					if(actionvalue > maxReward){
+						maxReward = actionvalue;
+						maxRewardAction = a;
+					}
+				}
+			}
+			if(actionList.isEmpty())
+				break;
+			if(maxReward < 0)
+				break;
+			maxRewardAction.apply(p);
+            if(doSleep > 0) {System.out.println(maxRewardAction.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
+		}
+		for(Unit u : p.getUnits())
+			for(Action a : u.getActions())
+				if(a instanceof ActionUnitUpgrade){
+                    if (a.isPerformableTo(p))
+					    a.apply(p);
+                    if(doSleep > 0) {System.out.println(a.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
+					break;
+				}			
 	}
 	public static void DevelopEconomyActions(int playerId){
 		Actions actionList = new Actions();
 		Player p = Game.players[playerId];
-		int maxValidationUse = remainStars / 2;
+		int maxValidationUse = remainStars;
 		int itemnum = 0;
 		for(int i = 0; i <= 1000; i ++){
-			knapsack[i] = -100000;
-			recordItem[i] = -1;
+            for(int j = 0; j <= 100; j ++){
+                knapsack[j][i] = -100000;
+			    recordItem[j][i]= -1;
+            }
 			itemList[i].setValue(0,0);
 		}
-		knapsack[0] = 0;
+		knapsack[0][0] = 0;
 		for(City c : p.getCities())
-			for(Tile t : c.getTerritory())
-				for(Action a : t.getVariation().getActions()){
-					actionList.addOne(a);
-					int totalReward = 0;
-					int cost = a.getCost();
-					for(Consequence con : a.getConsequences(p)){
-						if(con instanceof ConseqGainStars){
-							System.out.println("still have consequences that add stars");
-						}
-						totalReward = totalReward + con.getReward();
-					}
-					itemList[itemnum++].setValue(totalReward, cost);
-				}
-		for(int i = 0; i < itemnum; i ++){
-			for(int j = itemList[i].cost; j <= maxValidationUse; j ++){
-				if(knapsack[j - itemList[i].cost] + itemList[i].totalReward > knapsack[j]){
-					knapsack[j] = knapsack[j - itemList[i].cost] + itemList[i].totalReward;
-					recordItem[j] = i;
-				}
-			}
-		}
-		int maxKnapsackReward = -1;
-		int maxKnapsackSpot = 0;
-		for(int i = 0; i < maxValidationUse; i ++){
-			if(maxKnapsackReward < knapsack[i]){
-				maxKnapsackReward = knapsack[i];
-				maxKnapsackSpot = i;
-			}
-		}
-		while(maxKnapsackSpot > 0){
-			int actionId = recordItem[maxKnapsackSpot];
-			Action tempAction = actionList.getAction(actionId);
-			tempAction.apply(p);
-			maxKnapsackSpot = maxKnapsackSpot - itemList[actionId].cost;
-		}
-		remainStars = p.getStars();
-		int maxTileUse = remainStars / 2;
-		itemnum = 0;
-		for(int i = 0; i <= 1000; i ++){
-			knapsack[i] = -100000;
-			recordItem[i] = -1;
-			itemList[i].setValue(0,0);
-		}
-		knapsack[0] = 0;
-		for(City c : p.getCities())
-			for(Tile t : c.getTerritory())
-				for(Action a : t.getActions()){
-					if(a instanceof ActionClearForest)
+			for(Tile t : c.getTerritory()) {
+                if (t.getVariation() == null)
+                    continue;
+                ArrayList<Action> shuffleActions = new ArrayList<>(Arrays.asList(t.getVariation().getActions()));
+                Collections.shuffle(shuffleActions);
+                for(Action a : shuffleActions){
+					if(a.isPerformableTo(p) == false)
 						continue;
 					actionList.addOne(a);
 					int totalReward = 0;
 					int cost = a.getCost();
 					for(Consequence con : a.getConsequences(p)){
 						if(con instanceof ConseqGainStars){
-							System.out.println("still have consequences that add stars");
+							System.out.println("still have consequences that add stars: " + con.toString());
 						}
 						totalReward = totalReward + con.getReward();
 					}
 					itemList[itemnum++].setValue(totalReward, cost);
 				}
+            }
 		for(int i = 0; i < itemnum; i ++){
-			for(int j = itemList[i].cost; j <= maxTileUse; j ++){
-				if(knapsack[j - itemList[i].cost] + itemList[i].totalReward > knapsack[j]){
-					knapsack[j] = knapsack[j - itemList[i].cost] + itemList[i].totalReward;
-					recordItem[j] = i;
+			for(int j = maxValidationUse; j >= 0; j --){
+                knapsack[i+1][j] = knapsack[i][j];
+                recordItem[i+1][j] = -1;
+                if(j < itemList[i].cost)
+                    continue;
+				if(knapsack[i][j - itemList[i].cost] + itemList[i].totalReward > knapsack[i+1][j]){
+					knapsack[i+1][j] = knapsack[i][j - itemList[i].cost] + itemList[i].totalReward;
+					recordItem[i+1][j] = i;
+				}
+			}
+		}
+		int maxKnapsackReward = -1;
+		int maxKnapsackSpot = 0;
+		for(int i = 0; i < maxValidationUse; i ++){
+			if(maxKnapsackReward < knapsack[itemnum][i]){
+				maxKnapsackReward = knapsack[itemnum][i];
+				maxKnapsackSpot = i;
+			}
+		}
+		for(int i = itemnum; i > 0; i --){
+			int actionId = recordItem[i][maxKnapsackSpot];
+            if(actionId < 0)
+                continue;
+			Action tempAction = actionList.getAction(actionId);
+            if (tempAction.isPerformableTo(p))
+			    tempAction.apply(p);
+            if(doSleep > 0) {System.out.printf("%s, %d\n", tempAction.toString(), actionId);try{Thread.sleep(doSleep);}catch(Exception e){}}
+			maxKnapsackSpot = maxKnapsackSpot - itemList[actionId].cost;
+		}
+
+
+		remainStars = p.getStars();
+		int maxTileUse = remainStars;
+		actionList.clear();
+		itemnum = 0;
+		for(int i = 0; i <= 1000; i ++){
+            for(int j = 0; j <= 100; j ++){
+                knapsack[j][i] = -100000;
+			    recordItem[j][i]= -1;
+            }
+			itemList[i].setValue(0,0);
+		}
+		knapsack[0][0] = 0;
+		for(City c : p.getCities())
+			for(Tile t : c.getTerritory()) {
+                ArrayList<Action> shuffleActions = new ArrayList<>(Arrays.asList(t.getActions()));
+                Collections.shuffle(shuffleActions);
+                for(Action a : shuffleActions){
+					if(a instanceof ActionClearForest)
+						continue;
+					if(a.isPerformableTo(p) == false)
+						continue;
+					actionList.addOne(a);
+					int totalReward = 0;
+					int cost = a.getCost();
+					for(Consequence con : a.getConsequences(p)){
+						if(con instanceof ConseqGainStars){
+							System.out.println("still have consequences that add stars: " + con.toString());
+						}
+						totalReward = totalReward + con.getReward();
+					}
+					itemList[itemnum++].setValue(totalReward, cost);
+				}
+            }
+
+		for(int i = 0; i < itemnum; i ++){
+			for(int j = maxTileUse; j >= 0; j --){
+                knapsack[i+1][j] = knapsack[i][j];
+                recordItem[i+1][j] = -1;
+                if(j < itemList[i].cost)
+                    continue;
+				if(knapsack[i][j - itemList[i].cost] + itemList[i].totalReward > knapsack[i+1][j]){
+					knapsack[i+1][j] = knapsack[i][j - itemList[i].cost] + itemList[i].totalReward;
+					recordItem[i+1][j] = i;
 				}
 			}
 		}
 		maxKnapsackReward = -1;
 		maxKnapsackSpot = 0;
 		for(int i = 0; i < maxTileUse; i ++){
-			if(maxKnapsackReward < knapsack[i]){
-				maxKnapsackReward = knapsack[i];
+			if(maxKnapsackReward < knapsack[itemnum][i]){
+				maxKnapsackReward = knapsack[itemnum][i];
 				maxKnapsackSpot = i;
 			}
 		}
-		while(maxKnapsackSpot > 0){
-			int actionId = recordItem[maxKnapsackSpot];
+		for(int i = itemnum; i > 0; i --){
+			int actionId = recordItem[i][maxKnapsackSpot];
+            if(actionId == -1)
+                continue;
 			Action tempAction = actionList.getAction(actionId);
-			tempAction.apply(p);
+            if (tempAction.isPerformableTo(p))
+			    tempAction.apply(p);
+            if(doSleep > 0) {System.out.printf("%s, %d\n", tempAction.toString(), actionId);try{Thread.sleep(doSleep);}catch(Exception e){}}
 			maxKnapsackSpot = maxKnapsackSpot - itemList[actionId].cost;
 		}
 	}
 	public static void TrainUnitActions(int playerId){
 		Actions actionList = new Actions();
 		Player p = Game.players[playerId];
-		int maxStarUse = remainStars;
+		int maxStarUse = remainStars * 2 / (3 + Math.min(p.getUnits().size()/5, 3));
+
 		int itemnum = 0;
 		for(int i = 0; i <= 1000; i ++){
-			knapsack[i] = -100000;
-			tempKnapsack[i] = -100000;
-			recordItem[i] = -1;
+            for(int j = 0; j <= 100; j ++){
+                knapsack[j][i] = -100000;
+			    tempKnapsack[j][i] = -100000;
+			    recordItem[j][i] = -1;
+            }
 			itemList[i].setValue(0,0);
 		}
-		knapsack[0] = 0;
-		tempKnapsack[0] = 0;
+		knapsack[0][0] = 0;
+        int cntcities = 0;
 		for(City c : p.getCities())
 		{
+            for(int j = maxStarUse; j >= 0; j --){
+                knapsack[cntcities+1][j] = knapsack[cntcities][j];
+                recordItem[cntcities+1][j] = -1;
+            }
 			for(Action a : c.getActions())
 				if(a.isPerformableTo(p)){
 					actionList.addOne(a);
@@ -379,40 +573,41 @@ public class AI {
 					int cost = a.getCost();
 					for(Consequence con : a.getConsequences(p)){
 						if(con instanceof ConseqGainStars){
-							System.out.println("still have consequences that add stars");
+							System.out.println("still have consequences that add stars: " + con.toString());
 						}
 						totalReward = totalReward + con.getReward();
 					}
 					itemList[itemnum++].setValue(totalReward, cost);
 					int i = itemnum - 1;
-					for(int j = itemList[i].cost; j <= maxStarUse; j ++){
-						if(knapsack[j - itemList[i].cost] + itemList[i].totalReward > tempKnapsack[j]){
-							tempKnapsack[j] = knapsack[j - itemList[i].cost] + itemList[i].totalReward;
-							recordItem[j] = i;
+					for(int j = maxStarUse; j >= itemList[i].cost; j --){
+						if(knapsack[cntcities][j - itemList[i].cost] + itemList[i].totalReward > knapsack[cntcities + 1][j]){
+							knapsack[cntcities+1][j] = knapsack[cntcities][j - itemList[i].cost] + itemList[i].totalReward;
+							recordItem[cntcities+1][j] = i;
 						}
 					}
 				}
-			for(int j = 0; j <=maxStarUse; j ++)
-				knapsack[j] = tempKnapsack[j];
+            cntcities++;
 		}
 		int maxKnapsackReward = -1;
 		int maxKnapsackSpot = 0;
 		for(int i = 0; i < maxStarUse; i ++){
-			if(maxKnapsackReward < knapsack[i]){
-				maxKnapsackReward = knapsack[i];
+			if(maxKnapsackReward < knapsack[cntcities][i]){
+				maxKnapsackReward = knapsack[cntcities][i];
 				maxKnapsackSpot = i;
 			}
 		}
-		while(maxKnapsackSpot > 0){
-			int actionId = recordItem[maxKnapsackSpot];
+		for(int i = cntcities; i > 0; i --){
+			int actionId = recordItem[i][maxKnapsackSpot];
+            if(actionId == -1)
+                continue;
 			Action tempAction = actionList.getAction(actionId);
-			tempAction.apply(p);
+            if (tempAction.isPerformableTo(p))
+			    tempAction.apply(p);
+            if(doSleep > 0) {System.out.println(tempAction.toString());try{Thread.sleep(doSleep);}catch(Exception e){}}
 			maxKnapsackSpot = maxKnapsackSpot - itemList[actionId].cost;
 		}
 	}
 	public static void decideActionsForAI(int playerId){
-
-        
 		remainStars = Game.players[playerId].getStars();
 		GainStarActions(playerId);
 		remainStars = Game.players[playerId].getStars();
@@ -424,6 +619,15 @@ public class AI {
 		remainStars = Game.players[playerId].getStars();
 		TrainUnitActions(playerId);
 
-        new ActionEndTurn().apply(Game.players[playerId]);
+        System.out.printf ("Turn %d: ", Game.getTurn());
+        for (Tech tech : Game.players[playerId].getTechs()){
+            System.out.printf ("%s, ", tech.toString());
+        }
+        System.out.println();
+
+        if(doSleep > 0) {System.out.println();try{Thread.sleep(doSleep);}catch(Exception e){}}
+        Action a = new ActionEndTurn();
+        a.apply(Game.players[playerId]);      
+        
 	}
 }

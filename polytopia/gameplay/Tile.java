@@ -96,7 +96,7 @@ public class Tile implements Visualizable, Movable {
 	public Motion getMotion(){return this.motion;}
 
 	// Selection response
-	public void visualize(/* GUI component */) {
+	public void visualize() {
 
 		Player humanPlayer = Game.getHumanPlayer();
 		if (!humanPlayer.getVision().contains(this)) {
@@ -118,11 +118,30 @@ public class Tile implements Visualizable, Movable {
 
 		if (!humanPlayer.getVision().contains(this.getOwnerCity().getOwnerTile())) 
 			return;
+		
+		ArrayList<Action> visibleActions = new ArrayList<Action>();
+		for (Action action : this.getActions()) {
+			if (action.isVisibleTo(Game.getHumanPlayer()))
+				visibleActions.add(action);
+		}
+		if (this.getVariation() != null) {
+			for (Action action : this.getVariation().getActions()) {
+				if (action.isVisibleTo(Game.getHumanPlayer()))
+					visibleActions.add(action);
+			}
+		}
+		Game.window.showActions(visibleActions);
 
 		long current = System.currentTimeMillis();
 		Motion t = Motion.getInstanceOfMovableMotion(this.getOwnerCity().getOwnerTile(), this.getOwnerCity().getOwnerTile(), current, current + 100);
 		Render.addMotion(t);
 		this.getOwnerCity().getOwnerTile().setMotion(t);
+
+		// Sword Animation
+		/*current = System.currentTimeMillis();
+		t = Motion.getInstanceOfTextureMotion("SWORD", this, current, current + 200);
+		t.setMotionType(Motion.MotionType.ROTATE);
+		Render.addMotion(t);*/
 
 		// Fog Animation
 		/*long current = System.currentTimeMillis();
@@ -141,7 +160,6 @@ public class Tile implements Visualizable, Movable {
 		Render.addMotion(t);*/
 	}
 
-	// Checks for ownership and unit occupation
 	public boolean isOwnedBy(Player player) {
 		if (ownerCity != null && ownerCity.getOwnerPlayer() == player) {
 			return true;
@@ -165,435 +183,6 @@ public class Tile implements Visualizable, Movable {
 				|| ((Improvement)(this.variation)).getImprovementType() == Improvement.ImprovementType.MOUNTAIN_TEMPLE);
 	}
 
-
-
-	public static void main(String[] args) {
-		TilesTest display = new TilesTest();
-
-		/* Makeshift Interactive Commandline, for debugging. */
-
-		/* Dump basic info. */
-		/*
-		for(Player player : Game.players) {
-			System.out.println (player.getFaction().toString());
-			City capital = player.getCapital();
-			System.out.printf ("Capital %s at (%d, %d)\n", capital.getName(), 
-								capital.getOwnerTile().getX(), capital.getOwnerTile().getY());
-
-			System.out.println ("Territory:");
-			ArrayList<Tile> territory = capital.getTerritory();
-			for (Tile tile : territory) {
-				System.out.printf ("(%d, %d), %s, with %s\n",
-									tile.getX(), tile.getY(), 
-									tile.getTerrainType().toString(),
-									tile.getVariation() instanceof TileVariation ?
-									tile.getVariation().toString() : "nothing");
-			}
-			System.out.println();
-		}*/
-
-		Scanner scanner = new Scanner(System.in);
-		while (true) {
-			System.out.printf ("debug> ");
-			switch (scanner.nextLine().strip().toLowerCase()) {
-				case "i":
-				case "info":
-					if (Game.getCurrentPlayer() == null)
-						System.out.println("no current player");
-					else {
-						System.out.printf ("Current player: %s\n", Game.getCurrentPlayer().getFaction().toString());
-						System.out.printf ("\tcities: ");
-						for (City city : Game.getCurrentPlayer().getCities())
-							System.out.printf ("(%d, %d), ", city.getOwnerTile().getX(), city.getOwnerTile().getY());
-						System.out.println();
-						System.out.printf ("\tstars: %d\n", Game.getCurrentPlayer().getStars());
-						System.out.printf ("\ttechs: ");
-						for (Tech tech : Game.getCurrentPlayer().getTechs())
-							System.out.printf ("%s, ", tech.toString());
-						System.out.println();
-					}
-					break;
-				/*
-				case "p":
-				case "player":
-					for (int i = 0; i < Game.players.length; i++) {
-						System.out.printf ("%d: %s\n", i, Game.players[i].getFaction().toString());
-					}
-					System.out.printf("switch to: ");
-					int nextPlayer = 0;
-					try {nextPlayer = scanner.nextInt();}
-					catch (InputMismatchException e){break;}
-					if (nextPlayer >= 0 && nextPlayer < Game.players.length) {
-						Game.getCurrentPlayer() = Game.players[nextPlayer];
-						System.out.printf ("current player switched to %s\n", Game.getCurrentPlayer().getFaction().toString());
-					}
-					else
-						System.out.println ("invalid player number");
-					break;
-				*/
-				case "s":
-				case "star":
-					if (Game.getCurrentPlayer() == null)
-						System.out.println("no current player");
-					else {
-						System.out.printf ("new star count: ");
-						int newStar = 0;
-						try {newStar = scanner.nextInt();}
-						catch (InputMismatchException e){break;}
-						Game.getCurrentPlayer().setStars (newStar);
-					}
-					break;
-				case "t":
-				case "tech":
-					if (Game.getCurrentPlayer() == null)
-						System.out.println("no current player");
-					else {
-						System.out.printf ("new tech (ALL for all): ");
-						String newTech = scanner.next().strip();
-						System.out.println(newTech);
-						if (newTech.equals("ALL")) {
-							for (Tech tech : Tech.values())
-								if (!Game.getCurrentPlayer().getTechs().contains(tech))
-									Game.getCurrentPlayer().addTech(tech);
-						}
-						else {
-							try {
-								Tech tech = Tech.valueOf(newTech);
-								if (!Game.getCurrentPlayer().getTechs().contains(tech))
-									Game.getCurrentPlayer().addTech(tech);
-							} catch (IllegalArgumentException e) {
-								System.out.println ("invalid Tech name");
-							}
-						}
-					}
-					break;
-				case "q":
-				case "query":
-					if (Game.getCurrentPlayer() == null) {
-						System.out.println("no current player");
-						break;
-					}
-
-					System.out.printf("(x,y) of query: ");
-					int x,y;
-					try {x = scanner.nextInt(); y = scanner.nextInt();}
-					catch (InputMismatchException e) {break;}
-					if (!TileMap.isValid(Game.map.getGrid(), x, y))
-						System.out.printf ("(%d, %d) is not on map", x, y);
-					else {
-						Tile tile = Game.map.getGrid()[x][y];
-						System.out.printf ("(%d, %d), %s, with %s\n",
-									tile.getX(), tile.getY(), 
-									tile.getTerrainType().toString(),
-									tile.getVariation() != null ?
-									tile.getVariation().toString() : "nothing");
-						if (tile.getVariation() instanceof Improvement) {
-							Improvement improvement = (Improvement) (tile.getVariation());
-							System.out.printf ("%s at level %d\n", improvement.toString(), improvement.getLevel());
-						}
-						else if (tile.getVariation() instanceof City) {
-							City city = (City)(tile.getVariation());
-							System.out.printf ("City %s at (%d, %d)\n", city.getName(), 
-												tile.getX(), tile.getY());
-							System.out.printf ("Level: %d\t Population: %d\n", city.getLevel(), city.getPopulation());
-
-							System.out.println ("Territory:");
-							ArrayList<Tile> territory = city.getTerritory();
-							for (Tile t : territory) {
-								System.out.printf ("(%d, %d), %s, with %s\n",
-													t.getX(), t.getY(), 
-													t.getTerrainType().toString(),
-													t.getVariation() instanceof TileVariation ?
-													t.getVariation().toString() : "nothing");
-							}
-							System.out.println();
-						}
-
-						ArrayList<Action> actions = new ArrayList<>();
-						if (tile.getVariation() != null) {
-							for (Action action : tile.getVariation().getActions()) {
-								if (action.isVisibleTo (Game.getCurrentPlayer()))
-									actions.add(action);
-							}
-						}
-						if (tile.getUnit() != null) {
-							for (Action action : tile.getUnit().getActions()) {
-								if (action.isVisibleTo (Game.getCurrentPlayer()))
-									actions.add(action);
-							}
-						}
-						for (Action action : tile.getActions()) {
-							if (action.isVisibleTo (Game.getCurrentPlayer()))
-								actions.add(action);
-						}
-						for (Action action : Game.getCurrentPlayer().getActions()) {
-							if (action.isVisibleTo (Game.getCurrentPlayer()))
-								actions.add(action);
-						}
-
-						if (actions.size() == 0) {
-							System.out.printf ("no visible actions\n");
-							break;
-						}
-						
-						System.out.printf ("list of actions: \n");
-						for (int idx = 0; idx < actions.size(); idx++) {
-							Action action = actions.get(idx);
-							System.out.printf ("(%d) %s, %s\n", idx, 
-												action.isPerformableTo (Game.getCurrentPlayer()) ? "√" : "x", 
-												action.toString());
-							ArrayList<Consequence> conseqs = action.getConsequences(Game.getCurrentPlayer());
-							System.out.printf ("\t");
-							for (Consequence c : conseqs) {
-								System.out.printf ("-> %s ", c.toString());
-							}
-							System.out.printf ("\n");
-						}
-
-						System.out.printf ("pick action (-1 to skip): ");
-						int actionIdx = -1;
-						try {actionIdx = scanner.nextInt();}
-						catch (InputMismatchException e) {break;}
-						if (actionIdx >= 0 && actionIdx < actions.size()) {
-							if (actions.get(actionIdx).isPerformableTo (Game.getCurrentPlayer())) {
-								Action action = actions.get(actionIdx);
-								new Thread(()->{
-									action.apply(Game.getCurrentPlayer());
-								}).start();
-							}
-							else
-								System.out.println ("action not performable");
-						}
-					}
-					break;
-				case "0":
-					new Thread(()->{
-						new ActionEndTurn().apply(Game.getCurrentPlayer());
-					}).start();
-				case "":
-					break;
-				default:
-					System.out.println ("unknown command\n"+
-										"Usage:\n"+
-										"\t info(i) for dumping current player info\n"+
-										"\t player(p) for changing current player\n"+
-										"\t star(s) for setting current player star count\n"+
-										"\t tech(t) for setting current player tech\n"+
-										"\t query(q) for selecting tile, and more actions\n");
-			}
-
-			// refresh the graphics
-			// display.update();
-		}
-	}
 }
 
-class TilesTest {
-
-	private Object cond = new Object();
-	private boolean loaded = false;
-	private TestCanvas canvas = null;
-
-	
-	private Tile selectedTile = null;
-	private Unit selectedUnit = null;
-	private boolean preferUnit = true;
-	private boolean inAction = false;
-
-	public void update() {
-		this.canvas.repaint();
-	}
-
-	class TestCanvas extends JPanel {
-			public TestCanvas() {
-				/* Makeshift camera. */
-				addMouseListener(new MouseAdapter() {
-            		public void mousePressed(MouseEvent e) {
-                		Render.camera.setStart(e.getX(), e.getY());
-
-					}
-        		});
-
-				addMouseListener(new MouseAdapter() {
-            		public void mouseClicked(MouseEvent e) {
-						//Render.camera.cameraFocus(e.getX(), e.getY(), getWidth(), getHeight());
-						
-						Point2D des = Render.camera.inverseTransPoint(new Point2D.Double((double)e.getX(), (double)e.getY()));
-						int x = (int)Math.ceil(des.getX());
-						int y = (int)Math.ceil(des.getY());
-						
-						Render.clearDecorationMap();
-						if (!TileMap.isValid(Game.map.getGrid(), x, y)) {
-							System.out.printf ("(%d, %d) is not on map", x, y);
-							Render.setSelected(null);
-
-							selectedTile = null;
-							selectedUnit = null;
-							preferUnit = true;
-						}
-						else {
-							if (selectedUnit != null && !inAction) {
-								boolean actionPerformed = false;
-								Tile tile = Game.map.getGrid()[y][x];
-								for (Action action : selectedUnit.getActions()) {
-									if (!action.isPerformableTo(Game.getCurrentPlayer()))
-										continue;
-									if (action instanceof ActionUnitMove) {
-										Tile dest = ((ActionUnitMove)(action)).getDestination();
-										if (dest == tile) {
-											actionPerformed = true;
-											inAction = true;
-											new Thread(()->{
-												action.apply(Game.getCurrentPlayer());
-												inAction = false;
-											}).start();
-										}	
-									}
-									if (action instanceof ActionUnitAttack) {
-										Tile dest = ((ActionUnitAttack)(action)).getDestination();
-										if (dest == tile) {
-											actionPerformed = true;
-											inAction = true;
-											new Thread(()->{
-												action.apply(Game.getCurrentPlayer());
-												inAction = false;
-											}).start();
-										}	
-									}
-									if (action instanceof ActionUnitConvert) {
-										Tile dest = ((ActionUnitConvert)(action)).getDestination();
-										if (dest == tile) {
-											actionPerformed = true;
-											inAction = true;
-											new Thread(()->{
-												action.apply(Game.getCurrentPlayer());
-												inAction = false;
-											}).start();
-										}	
-									}
-								}
-								if (actionPerformed)
-									return;
-							}
-
-							Tile tile = Game.map.getGrid()[y][x];
-							selectedTile = tile;
-							
-							if (tile.getUnit() == null || !preferUnit) {
-								preferUnit = true;
-								selectedUnit = null;
-								tile.visualize();
-								if (Game.getHumanPlayer().getVision().contains(tile)){
-									Render.setSelected(tile);
-									System.out.printf ("(%d, %d), %s, with %s\n",
-												tile.getX(), tile.getY(), 
-												tile.getTerrainType().toString(),
-												tile.getVariation() != null ?
-												tile.getVariation().toString() : "nothing");
-								}
-								else{
-									Render.setSelected(null);
-									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
-								}
-							}
-							else {
-								if (Game.getHumanPlayer().getVision().contains(tile)){
-									preferUnit = false;
-									selectedUnit = tile.getUnit();
-									Render.setSelected(tile);
-									System.out.printf ("%s at %d health\n", selectedUnit.toString(), selectedUnit.getHealth());
-									tile.getUnit().visualize();
-								}
-								else{
-									preferUnit = true;
-									selectedUnit = null;
-									Render.setSelected(null);
-									System.out.printf ("(%d, %d), FOG\n", tile.getX(), tile.getY());
-								}
-							}
-						}
-					}
-        		});
-
-
-				addMouseWheelListener(new MouseAdapter() {
-            		public void mouseWheelMoved(MouseWheelEvent e) {
-						Render.camera.changeScale(e.getWheelRotation());
-            		}
-        		});
-
-				
-        		addMouseMotionListener(new MouseAdapter() {
-            		public void mouseDragged(MouseEvent e) {
-						Render.camera.changePos(e.getX(), e.getY());
-            		}
-       			});
-
-				addMouseMotionListener(new MouseAdapter() {
-					public void mouseMoved(MouseEvent e) {
-						Render.camera.setMousePos(e.getX(), e.getY());
-					}
-				});
-			}
-
-			@Override
-        	public void paintComponent(Graphics g) {
-				super.paintComponent(g);  
-
-				Graphics2D g2d = (Graphics2D) g;
-				Render.render(g2d);
-        	}
-		}
-
-
-	/** For testing the tiling visualization. */
-	public TilesTest() {
-		
-		class TestWindow extends JFrame {
-			private JFrame frame = null;
-
-			public TestWindow() {
-				frame = new JFrame("Tiles::Test");
-				frame.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-				frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-				
-				/* Makeshift: a fixed JPanel to draw on. */
-				canvas = new TestCanvas();
-				canvas.setSize(Toolkit.getDefaultToolkit().getScreenSize());
-				canvas.setBackground (Color.BLACK);
-
-				Game.start(12, (int) (System.currentTimeMillis()), "DRYLAND",
-							new String[]{"Oumaji", "Xinxi"});
-
-				frame.setLayout(null);
-				frame.add(canvas);
-				frame.setVisible(true);
-
-				synchronized (cond) {
-					loaded = true;
-					cond.notify();
-				}
-			}
-		}
-		javax.swing.SwingUtilities.invokeLater(() -> {
-            new TestWindow();
-        });
-
-		synchronized (cond) {
-			while (!loaded) {
-				// Wait for the map to be loaded
-				try {cond.wait();}
-				catch (InterruptedException e) {}
-			}
-		}
-
-		int delay = 15; //milliseconds
-  		new Timer(delay, (ActionEvent evt) -> {
-			  this.update();
-		  }).start();
-		
-		// This starts the game cycle
-		Game.getCurrentPlayer().play();
-	}
-}
 

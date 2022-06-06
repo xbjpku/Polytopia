@@ -91,8 +91,13 @@ public class Unit implements Visualizable, Movable {
         int size = Game.map.getSize();
 		Action[][] actionMap = new Action[size][size];
 		ArrayList<Action> actions = this.getActions();
+		ArrayList<Action> visibleActions = new ArrayList<Action>();
 		for (Action action : actions) {
-			if (!action.isPerformableTo(Game.getCurrentPlayer()))
+			if (action.isVisibleTo(Game.getCurrentPlayer()))
+				if (!(action instanceof ActionUnitMove) && !(action instanceof ActionUnitAttack) && !(action instanceof ActionUnitConvert))
+					visibleActions.add(action);
+
+			if (!action.isPerformableTo(Game.getHumanPlayer()))
 				continue;
 
 			if (action instanceof ActionUnitMove) {
@@ -108,6 +113,7 @@ public class Unit implements Visualizable, Movable {
 				Render.setDecorationMap(dest.getY(), dest.getX(), Render.Decoration.UNIT_ATTACK);
 			}
 		}
+		Game.window.showActions(visibleActions);
 	}
 
 	public Unit(UnitType type, Player player) {
@@ -362,10 +368,33 @@ public class Unit implements Visualizable, Movable {
 		return legalActions;
 	}
 
+	public Action pickAction(Player player, Tile tile) {
+
+		for (Action action : this.getActions()) {
+			if (!action.isPerformableTo(player))
+				continue;
+			if (action instanceof ActionUnitMove) {
+				Tile dest = ((ActionUnitMove)(action)).getDestination();
+				if (dest == tile) 
+					return action;
+			}
+			if (action instanceof ActionUnitAttack) {
+				Tile dest = ((ActionUnitAttack)(action)).getDestination();
+				if (dest == tile) 
+					return action;
+			}
+			if (action instanceof ActionUnitConvert) {
+				Tile dest = ((ActionUnitConvert)(action)).getDestination();
+				if (dest == tile) 
+					return action;
+			}
+		}
+		return null;
+	}
+
 	@Override
 	public String toString() {
-		return String.join("-", type.toString(), ownerPlayer.getFaction().toString(), 
-							(movable || attackable ? "active" : "inactive"));
+		return String.join("-", type.toString(), ownerPlayer.getFaction().toString());
 	}
 
 }

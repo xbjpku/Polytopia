@@ -50,7 +50,7 @@ public class Player {
 		CHIVALRY (3, FREE_SPIRIT);		// enemy
 		
 		int rank;
-		Tech prerequisite;
+		public final Tech prerequisite;
 
 		Tech (int rank, Tech prerequisite) {
 			this.rank = rank;
@@ -63,6 +63,29 @@ public class Player {
 				cost = (int)(Math.ceil(cost * 2.0/3));
 			return cost;
 		}
+
+		public boolean isVisibleTo(Player player) {
+			if (player.getTechs().contains(this))
+				return false;
+
+			if (this.prerequisite == null || player.getTechs().contains(this.prerequisite)) {
+				return true;
+			}
+			return false;
+		}
+
+		public static ArrayList<Tech> getVisibleTechs(Player player) {
+			ArrayList<Tech> techs =  player.getTechs();
+
+			ArrayList<Tech> newTechs = new ArrayList<Tech>();
+			for (Tech tech : Tech.values()) {
+				if (tech.isVisibleTo(player)) {
+					newTechs.add(tech);
+				}
+			}
+			return newTechs;
+		}
+
 
 		public boolean isUnlockableTo(Player player) {
 			if (player.getTechs().contains(this))
@@ -80,7 +103,7 @@ public class Player {
 
 			ArrayList<Tech> newTechs = new ArrayList<Tech>();
 			for (Tech tech : Tech.values()) {
-				if (!techs.contains(tech) && tech.isUnlockableTo(player)) {
+				if (tech.isUnlockableTo(player)) {
 					newTechs.add(tech);
 				}
 			}
@@ -101,8 +124,14 @@ public class Player {
 
 	public Player(String factionName, int playerId, boolean isBot) {
 		this.faction = Faction.valueOf(factionName);
-		this.stars = 5;
+		this.stars = isBot ? 10 : 5;
 		this.techs = new ArrayList<Tech>();
+		
+		/*
+		for (Tech tech : Tech.values()) {
+			this.techs.add(tech);
+		}*/
+		
 		switch(this.faction) {
 			case Xinxi: this.techs.add(Tech.CLIMBING); break;
 			case Imperius: this.techs.add(Tech.ORGANIZATION); break;
@@ -185,7 +214,8 @@ public class Player {
 	public void play() {
 
 		// Apply the start turn action
-		new ActionStartTurn().apply(this);
+		if (Game.getTurn() > 1)
+			new ActionStartTurn().apply(this);
 
 		if (!this.isBot) {
 			// Human player.
@@ -196,11 +226,12 @@ public class Player {
 			// Bot player.
 			// Invoke AI to take actions.
 			
-			/*
+			
 			new Thread(()->{
+				AI.doSleep = 300;
 				AI.decideActionsForAI(this.playerId);
 			}).start();
-			*/
+			
 		}
 
 	}

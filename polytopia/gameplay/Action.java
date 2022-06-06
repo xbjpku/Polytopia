@@ -7,9 +7,7 @@ import polytopia.graphics.Render;
 import polytopia.graphics.Motion;
 import polytopia.gameplay.Player.Tech;
 
-public abstract class Action implements Visualizable{
-
-	public abstract void visualize();
+public abstract class Action {
 
 	/* Whether PLAYER can see this ACTION. */
 	public abstract boolean isVisibleTo(Player player);
@@ -24,8 +22,27 @@ public abstract class Action implements Visualizable{
 	/* Apply this ACTION. */
 	public abstract void apply(Player player);
 
-	protected int cost = 0;
+	public int cost = 0;
 	public int getCost() {return cost;}
+
+	public static Action getActionByName(String name) {
+		switch (name) {
+			case "ActionEndTurn": return new ActionEndTurn();
+			default: return null;
+		}
+	}
+
+	public static ActionUnlockTech getActionByTech(Tech tech) {
+		return new ActionUnlockTech(tech);
+	}
+
+	public static boolean isTechAction(Action action) {
+		return action instanceof ActionUnlockTech;
+	}
+
+	public static Tech actionToTech(Action action) {
+		return action instanceof ActionUnlockTech ? ((ActionUnlockTech)(action)).tech : null;
+	}
 
 }
 
@@ -34,12 +51,6 @@ public abstract class Action implements Visualizable{
 class ActionHarvestFruit extends Action {
 	
 	private Resource subject;
-
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Harvest Fruit");
-
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has ORGANIZATION tech
@@ -86,10 +97,6 @@ class ActionFishing extends Action {
 	
 	private Resource subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Fishing");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has FISHING tech
@@ -137,10 +144,6 @@ class ActionHunting extends Action {
 	
 	private Resource subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Hunting");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has HUNTING tech
@@ -188,10 +191,6 @@ class ActionFarming extends Action {
 	
 	private Resource subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Farming");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has FARMING tech
@@ -240,10 +239,6 @@ class ActionMining extends Action {
 	
 	private Resource subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Mining");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has MINING tech
@@ -292,10 +287,6 @@ class ActionWhaling extends Action {
 	
 	private Resource subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Whaling");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has WHALING tech
@@ -340,10 +331,6 @@ class ActionBuildLumberHut extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Lumber Hut");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has FORESTRY tech, and SUBJECT is FOREST.
@@ -395,10 +382,6 @@ class ActionBuildPort extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Port");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has SAILING tech, and SUBJECT is SHORE.
@@ -450,10 +433,6 @@ class ActionBuildSawmill extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Sawmill");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has MATHEMATICS tech, and SUBJECT is FIELD,
@@ -462,6 +441,12 @@ class ActionBuildSawmill extends Action {
 			|| subject.getTerrainType() != Tile.TerrainType.FIELD
 			|| !subject.isOwnedBy(player))
 			return false;
+		
+		for (Tile tile : subject.getOwnerCity().getTerritory()) {
+			if (tile.getVariation() instanceof Improvement
+				&& ((Improvement)(tile.getVariation())).getImprovementType() == Improvement.ImprovementType.SAWMILL)
+				return false;
+		}
 		
 		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
 		for (Tile t : adjTile)
@@ -526,10 +511,6 @@ class ActionBuildForge extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Forge");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has SMITHERY tech, and SUBJECT is FIELD
@@ -538,6 +519,12 @@ class ActionBuildForge extends Action {
 			|| subject.getTerrainType() != Tile.TerrainType.FIELD
 			|| !subject.isOwnedBy(player))
 			return false;
+		
+		for (Tile tile : subject.getOwnerCity().getTerritory()) {
+			if (tile.getVariation() instanceof Improvement
+				&& ((Improvement)(tile.getVariation())).getImprovementType() == Improvement.ImprovementType.FORGE)
+				return false;
+		}
 		
 		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
 		for (Tile t : adjTile)
@@ -602,10 +589,6 @@ class ActionBuildWindmill extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Windmill");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has CONSTRUCTION tech, and SUBJECT is FIELD
@@ -614,6 +597,12 @@ class ActionBuildWindmill extends Action {
 			|| subject.getTerrainType() != Tile.TerrainType.FIELD
 			|| !subject.isOwnedBy(player))
 			return false;
+		
+		for (Tile tile : subject.getOwnerCity().getTerritory()) {
+			if (tile.getVariation() instanceof Improvement
+				&& ((Improvement)(tile.getVariation())).getImprovementType() == Improvement.ImprovementType.WINDMILL)
+				return false;
+		}
 		
 		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
 		for (Tile t : adjTile)
@@ -678,10 +667,6 @@ class ActionBuildCustomsHouse extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Customs House");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has TRADE tech, and SUBJECT is FIELD
@@ -690,6 +675,12 @@ class ActionBuildCustomsHouse extends Action {
 			|| subject.getTerrainType() != Tile.TerrainType.FIELD
 			|| !subject.isOwnedBy(player))
 			return false;
+		
+		for (Tile tile : subject.getOwnerCity().getTerritory()) {
+			if (tile.getVariation() instanceof Improvement
+				&& ((Improvement)(tile.getVariation())).getImprovementType() == Improvement.ImprovementType.CUSTOMS_HOUSE)
+				return false;
+		}
 		
 		ArrayList<Tile> adjTile = TileMap.getInnerRing(Game.map.getGrid(), subject.getX(), subject.getY());
 		for (Tile t : adjTile)
@@ -750,10 +741,6 @@ class ActionBuildTemple extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Temple");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has FREE_SPIRIT tech, and SUBJECT is SHORE.
@@ -804,10 +791,6 @@ class ActionBuildForestTemple extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Forest Temple");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has SPIRITUALISM tech, and SUBJECT is FOREST.
@@ -858,10 +841,6 @@ class ActionBuildAquaTemple extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Aqua Temple");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has AQUATISM tech, and SUBJECT is SHORE/OCEAN.
@@ -912,10 +891,6 @@ class ActionBuildMountainTemple extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Mountain Temple");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has MEDITATION tech, and SUBJECT is MOUNTAIN.
@@ -966,10 +941,6 @@ class ActionDestroyImprovement extends Action {
 	
 	private Improvement subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Destroy");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has CONSTRUCTION tech
@@ -1017,10 +988,6 @@ class ActionClearForest extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Clear Forest");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has FREE_SPIRIT tech, and SUBJECT is FOREST.
@@ -1069,10 +1036,6 @@ class ActionGrowForest extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Grow Forest");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has SPIRITUALISM tech, and SUBJECT is FIELD.
@@ -1120,10 +1083,6 @@ class ActionBurnForest extends Action {
 	
 	private Tile subject;
 
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Burn Forest");
-	}
 
 	public boolean isVisibleTo(Player player) {
 		// if PLAYER has CHIVALRY tech, and SUBJECT is FOREST.
@@ -1170,19 +1129,14 @@ class ActionBurnForest extends Action {
 
 class ActionUnlockTech extends Action {
 	
-	private Tech tech;
-
-	public void visualize() {
-		//TODO: GUI and stuff
-		System.out.println("Unlock " + tech.toString());
-	}
+	public Tech tech;
 
 	public boolean isVisibleTo(Player player) {
-		return tech.isUnlockableTo(player);
+		return tech.isVisibleTo(player);
 	}
 
 	public boolean isPerformableTo(Player player) {
-		return this.isVisibleTo(player);
+		return tech.isUnlockableTo(player);
 	}
 
 	public ArrayList<Consequence> getConsequences(Player player) {
@@ -1200,7 +1154,7 @@ class ActionUnlockTech extends Action {
 
 	@Override
 	public String toString() {
-		return "Unlock " + tech.toString();
+		return tech.toString();
 	}
 
 	public ActionUnlockTech(Tech tech) {
@@ -1218,9 +1172,6 @@ class ActionUnitUpgrade extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player;
@@ -1245,7 +1196,7 @@ class ActionUnitUpgrade extends Action {
 
 	@Override
 	public String toString() {
-		return unit.toString() + " upgrades";
+		return "Upgrade";
 	}
 
 	public ActionUnitUpgrade(Unit unit) {this.unit = unit;}
@@ -1256,9 +1207,6 @@ class ActionUnitMove extends Action {
 	private Unit unit;
 	private Tile destination;
 
-	public void visualize() {
-
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player
@@ -1298,9 +1246,6 @@ class ActionUnitAttack extends Action {
 	private Unit unit;
 	private Unit enemy;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player
@@ -1338,9 +1283,6 @@ class ActionUnitRecover extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player;
@@ -1368,7 +1310,7 @@ class ActionUnitRecover extends Action {
 
 	@Override
 	public String toString() {
-		return unit.toString() + " recovers";
+		return "Recover";
 	}
 
 	public ActionUnitRecover(Unit unit) {this.unit = unit;}
@@ -1378,9 +1320,6 @@ class ActionUnitHeal extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player;
@@ -1412,7 +1351,7 @@ class ActionUnitHeal extends Action {
 
 	@Override
 	public String toString() {
-		return unit.toString() + " heals";
+		return "Heals";
 	}
 
 	public ActionUnitHeal(Unit unit) {this.unit = unit;}
@@ -1423,9 +1362,6 @@ class ActionUnitConvert extends Action {
 	private Unit unit;
 	private Unit enemy;
 
-	public void visualize() {
-
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player
@@ -1465,9 +1401,6 @@ class ActionUnitDisband extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player;
@@ -1497,7 +1430,7 @@ class ActionUnitDisband extends Action {
 
 	@Override
 	public String toString() {
-		return unit.toString() + " disbands";
+		return "Disband Unit";
 	}
 
 	public ActionUnitDisband(Unit unit) {this.unit = unit;}
@@ -1507,9 +1440,6 @@ class ActionUpgradeBoat extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player
@@ -1534,11 +1464,13 @@ class ActionUpgradeBoat extends Action {
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
+		int stars = unit.getOwnerPlayer().getStars();
+		unit.getOwnerPlayer().setStars(stars - 5);
 	}
 
 	@Override
 	public String toString() {
-		return unit.toString() + " upgrades to ship";
+		return "Upgrade to ship";
 	}
 
 	public ActionUpgradeBoat(Unit unit) {this.unit = unit;}
@@ -1548,9 +1480,6 @@ class ActionUpgradeShip extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return unit.getOwnerPlayer() == player
@@ -1575,11 +1504,13 @@ class ActionUpgradeShip extends Action {
 
 	public void apply(Player player) {
 		Consequence.apply (this.getConsequences(player));
+		int stars = unit.getOwnerPlayer().getStars();
+		unit.getOwnerPlayer().setStars(stars - 15);
 	}
 
 	@Override
 	public String toString() {
-		return unit.toString() + " upgrades to battleship";
+		return "Upgrades to battleship";
 	}
 
 	public ActionUpgradeShip(Unit unit) {this.unit = unit;}
@@ -1589,9 +1520,6 @@ class ActionCaptureValuableTile extends Action {
 
 	private Unit unit;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		if (unit.getOwnerPlayer() != player)
@@ -1646,15 +1574,15 @@ class ActionCaptureValuableTile extends Action {
 	public String toString() {
 		if (unit.getPosition().getVariation() instanceof Resource
 			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.VILLAGE)
-			return unit.toString() + " captures village";
+			return "Captures Village";
 		
 		if (unit.getPosition().getVariation() instanceof Resource
 			&& ((Resource)(unit.getPosition().getVariation())).getResourceType() == Resource.ResourceType.RUINS)
-			return unit.toString() + " explores ruins";
+			return "Explores Ruins";
 		
 		if (unit.getPosition().getVariation() instanceof City
 			&& ((City)(unit.getPosition().getVariation())).getOwnerPlayer() != unit.getOwnerPlayer())
-			return unit.toString() + " captures CITY " + ((City)(unit.getPosition().getVariation())).getName();
+			return "Captures City";
 		
 		return "";
 	}
@@ -1670,9 +1598,6 @@ class ActionTrainUnit extends Action {
 	private City city;
 	private Unit.UnitType type;
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return city.getOwnerPlayer() == player
@@ -1703,7 +1628,7 @@ class ActionTrainUnit extends Action {
 
 	@Override
 	public String toString() {
-		return city.toString() + " trains " + type.toString();
+		return type.toString();
 	}
 
 	public ActionTrainUnit(City city, Unit.UnitType type) {
@@ -1715,9 +1640,6 @@ class ActionTrainUnit extends Action {
 
 class ActionStartTurn extends Action {
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return true;
@@ -1763,9 +1685,6 @@ class ActionStartTurn extends Action {
 
 class ActionEndTurn extends Action {
 
-	public void visualize() {
-		
-	}
 
 	public boolean isVisibleTo(Player player) {
 		return true;

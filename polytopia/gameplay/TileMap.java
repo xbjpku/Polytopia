@@ -597,6 +597,25 @@ abstract class MapGenerator {
 						players[i].addVision(grid[x][y]);
 				}
 			}
+
+			// Spawn the initial unit
+			Unit unit = null;
+			switch (players[i].getFaction()) {
+				case Xinxi:
+				case Imperius: 
+				case Bardur:
+					unit = new Unit(Unit.UnitType.WARRIOR, players[i]);
+					break;
+				case Oumaji:
+					unit = new Unit(Unit.UnitType.RIDER, players[i]);
+					break;
+			}
+			unit.setOwnerCity(capital);
+			capital.getUnits().add(unit);
+			unit.setMovable(true);
+			unit.setAttackable(true);
+			unit.setPosition(t);
+			t.setUnit(unit);
 			
 		}
 

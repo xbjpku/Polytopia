@@ -68,6 +68,18 @@
 <entry key="SWORDSMAN-Xinxi-inactive">./resources/units/Xinxi/swordsman_gray.png</entry>
 <entry key="GIANT-Xinxi-active">./resources/units/Xinxi/giant_glow.png</entry>
 <entry key="GIANT-Xinxi-inactive">./resources/units/Xinxi/giant_gray.png</entry>
+<entry key="WARRIOR-Xinxi">./resources/units/Xinxi/warrior.png</entry>
+<entry key="RIDER-Xinxi">./resources/units/Xinxi/rider.png</entry>
+<entry key="CATAPULT-Xinxi">./resources/units/Xinxi/catapult.png</entry>
+<entry key="ARCHER-Xinxi">./resources/units/Xinxi/archer.png</entry>
+<entry key="BATTLESHIP-Xinxi">./resources/units/Xinxi/battleship.png</entry>
+<entry key="BOAT-Xinxi">./resources/units/Xinxi/boat.png</entry>
+<entry key="DEFENDER-Xinxi">./resources/units/Xinxi/defender.png</entry>
+<entry key="KNIGHT-Xinxi">./resources/units/Xinxi/knight.png</entry>
+<entry key="MINDBENDER-Xinxi">./resources/units/Xinxi/mindbender.png</entry>
+<entry key="SHIP-Xinxi">./resources/units/Xinxi/ship.png</entry>
+<entry key="SWORDSMAN-Xinxi">./resources/units/Xinxi/swordsman.png</entry>
+<entry key="GIANT-Xinxi">./resources/units/Xinxi/giant.png</entry>
 
 <entry key="WARRIOR-Imperius-active">./resources/units/Imperius/warrior_glow.png</entry>
 <entry key="WARRIOR-Imperius-inactive">./resources/units/Imperius/warrior_gray.png</entry>
@@ -93,6 +105,18 @@
 <entry key="SWORDSMAN-Imperius-inactive">./resources/units/Imperius/swordsman_gray.png</entry>
 <entry key="GIANT-Imperius-active">./resources/units/Imperius/giant_glow.png</entry>
 <entry key="GIANT-Imperius-inactive">./resources/units/Imperius/giant_gray.png</entry>
+<entry key="WARRIOR-Imperius">./resources/units/Imperius/warrior.png</entry>
+<entry key="RIDER-Imperius">./resources/units/Imperius/rider.png</entry>
+<entry key="CATAPULT-Imperius">./resources/units/Imperius/catapult.png</entry>
+<entry key="ARCHER-Imperius">./resources/units/Imperius/archer.png</entry>
+<entry key="BATTLESHIP-Imperius">./resources/units/Imperius/battleship.png</entry>
+<entry key="BOAT-Imperius">./resources/units/Imperius/boat.png</entry>
+<entry key="DEFENDER-Imperius">./resources/units/Imperius/defender.png</entry>
+<entry key="KNIGHT-Imperius">./resources/units/Imperius/knight.png</entry>
+<entry key="MINDBENDER-Imperius">./resources/units/Imperius/mindbender.png</entry>
+<entry key="SHIP-Imperius">./resources/units/Imperius/ship.png</entry>
+<entry key="SWORDSMAN-Imperius">./resources/units/Imperius/swordsman.png</entry>
+<entry key="GIANT-Imperius">./resources/units/Imperius/giant.png</entry>
 
 <entry key="WARRIOR-Bardur-active">./resources/units/Bardur/warrior_glow.png</entry>
 <entry key="WARRIOR-Bardur-inactive">./resources/units/Bardur/warrior_gray.png</entry>
@@ -118,6 +142,18 @@
 <entry key="SWORDSMAN-Bardur-inactive">./resources/units/Bardur/swordsman_gray.png</entry>
 <entry key="GIANT-Bardur-active">./resources/units/Bardur/giant_glow.png</entry>
 <entry key="GIANT-Bardur-inactive">./resources/units/Bardur/giant_gray.png</entry>
+<entry key="WARRIOR-Bardur">./resources/units/Bardur/warrior.png</entry>
+<entry key="RIDER-Bardur">./resources/units/Bardur/rider.png</entry>
+<entry key="CATAPULT-Bardur">./resources/units/Bardur/catapult.png</entry>
+<entry key="ARCHER-Bardur">./resources/units/Bardur/archer.png</entry>
+<entry key="BATTLESHIP-Bardur">./resources/units/Bardur/battleship.png</entry>
+<entry key="BOAT-Bardur">./resources/units/Bardur/boat.png</entry>
+<entry key="DEFENDER-Bardur">./resources/units/Bardur/defender.png</entry>
+<entry key="KNIGHT-Bardur">./resources/units/Bardur/knight.png</entry>
+<entry key="MINDBENDER-Bardur">./resources/units/Bardur/mindbender.png</entry>
+<entry key="SHIP-Bardur">./resources/units/Bardur/ship.png</entry>
+<entry key="SWORDSMAN-Bardur">./resources/units/Bardur/swordsman.png</entry>
+<entry key="GIANT-Bardur">./resources/units/Bardur/giant.png</entry>
 
 <entry key="WARRIOR-Oumaji-active">./resources/units/Oumaji/warrior_glow.png</entry>
 <entry key="WARRIOR-Oumaji-inactive">./resources/units/Oumaji/warrior_gray.png</entry>
@@ -143,12 +179,29 @@
 <entry key="SWORDSMAN-Oumaji-inactive">./resources/units/Oumaji/swordsman_gray.png</entry>
 <entry key="GIANT-Oumaji-active">./resources/units/Oumaji/giant_glow.png</entry>
 <entry key="GIANT-Oumaji-inactive">./resources/units/Oumaji/giant_gray.png</entry>
+<entry key="WARRIOR-Oumaji">./resources/units/Oumaji/warrior.png</entry>
+<entry key="RIDER-Oumaji">./resources/units/Oumaji/rider.png</entry>
+<entry key="CATAPULT-Oumaji">./resources/units/Oumaji/catapult.png</entry>
+<entry key="ARCHER-Oumaji">./resources/units/Oumaji/archer.png</entry>
+<entry key="BATTLESHIP-Oumaji">./resources/units/Oumaji/battleship.png</entry>
+<entry key="BOAT-Oumaji">./resources/units/Oumaji/boat.png</entry>
+<entry key="DEFENDER-Oumaji">./resources/units/Oumaji/defender.png</entry>
+<entry key="KNIGHT-Oumaji">./resources/units/Oumaji/knight.png</entry>
+<entry key="MINDBENDER-Oumaji">./resources/units/Oumaji/mindbender.png</entry>
+<entry key="SHIP-Oumaji">./resources/units/Oumaji/ship.png</entry>
+<entry key="SWORDSMAN-Oumaji">./resources/units/Oumaji/swordsman.png</entry>
+<entry key="GIANT-Oumaji">./resources/units/Oumaji/giant.png</entry>
+
 
 <entry key="POPULATION-Bardur">./resources/tiles/Bardur/Bardur.png</entry>
 <entry key="POPULATION-Imperius">./resources/tiles/Imperius/Imperius.png</entry>
 <entry key="POPULATION-Oumaji">./resources/tiles/Oumaji/Oumaji.png</entry>
 <entry key="POPULATION-Xinxi">./resources/tiles/Xinxi/Xinxi.png</entry>
 <entry key="STAR">./resources/misc/Star.png</entry>
+<entry key="SMALL_STAR">./resources/misc/Small_Star.png</entry>
+<entry key="ARROW">./resources/misc/arrow_attack.png</entry>
+<entry key="BULLET">./resources/misc/bullet_attack.png</entry>
+<entry key="SWORD">./resources/misc/melee_attack.png</entry>
 <entry key="MOVEMENT">./resources/misc/movement.png</entry>
 <entry key="ATTACK">./resources/misc/attack.png</entry>
 

@@ -18,9 +18,10 @@ public class Motion {
     double deadline;
 
     int maxHeight;
+    int accelerate = 20;
 
     public enum MotionType{
-        RISE, SHAKE, JUMP, PRESSED, TRANSLATE
+        RISE, SHAKE, JUMP, PRESSED, TRANSLATE, ROTATE
     } 
     MotionType type;
 
@@ -30,6 +31,15 @@ public class Motion {
         startTime = start;
         this.deadline = deadline;
         type = MotionType.SHAKE;
+    }
+
+    public Motion(Tile t, double start, double deadline, int accelerate) {
+        departureTile = t;
+        destinationTile = t;
+        startTime = start;
+        this.deadline = deadline;
+        this.accelerate = accelerate;
+        type = MotionType.RISE;
     }
 
     public Motion(Tile departureTile, Tile destinationTile, double start, double deadline, MotionType type) {
@@ -77,6 +87,12 @@ public class Motion {
     public static Motion getInstanceOfTextureMotion(String name, Tile departureTile, Tile destinationTile, double start, double deadline) {
         return (Motion)new TextureMotion(name, departureTile, destinationTile, start, deadline);
     }
+    public static Motion getInstanceOfTextureMotion(String name, Tile t, double start, double deadline, int accelerate){
+        return (Motion)new TextureMotion(name, t, start, deadline, accelerate);
+    }
+    public static Motion getInstanceOfStringMotion(String string, Tile t, double start, double deadline, Color color){
+        return (Motion)new StringMotion(string, t, start, deadline, color);
+    }
 
     public void setMotionType(MotionType type){
         this.type = type;
@@ -84,14 +100,13 @@ public class Motion {
 
     public int getJumpHeight(){
         int heightOffset = maxHeight - (int)Math.round((1 - (2 * lastTime) / (deadline - startTime)) * 
-        (1 - (2 * lastTime) / (deadline - startTime))) * maxHeight;
+        (1 - (2 * lastTime) / (deadline - startTime)) * maxHeight);
         return heightOffset;
     }
 
-    final static int riseAcceler = 50;
     public int getRiseHeight(){
         int heightOffset = (int)Math.round(lastTime * 
-        lastTime  / 10000) * riseAcceler / 2;
+        lastTime  / 10000) * accelerate / 2;
         return heightOffset;
     }
 
@@ -110,6 +125,9 @@ public class Motion {
 
     private Point2D getShakeTranslation(){
         return new Point2D.Double(0, -2 * shakeBias * Math.sin((2 * Math.PI / shakeCycle) * lastTime));
+    }
+    public double getRotation(){
+        return  Math.PI / 2 * lastTime / (deadline - startTime);
     }
 
 }
@@ -142,6 +160,12 @@ class TextureMotion extends Motion{
         this.name = name;
         this.texture = Texture.getTextureByName(name);
         setMotionType(MotionType.RISE);
+    }
+
+    public TextureMotion(String name, Tile t, double start, double deadline, int accelerate) {
+        super(t, start, deadline, accelerate);
+        this.name = name;
+        this.texture = Texture.getTextureByName(name);
     }
 
     public TextureMotion(String name, Tile departureTile, Tile destinationTile, double start, double deadline) {
@@ -203,8 +227,66 @@ class TextureMotion extends Motion{
                 + pointDeparture.getY() - Render.detaHeight - Render.tileHeight);
                 tmp.scale(0.25f, 0.25f);
                 g2d.drawRenderedImage(texture, tmp);
+            case "ARROW":
+                ac2 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+                g2d.setComposite(ac2);
+                tmp =  AffineTransform.getTranslateInstance(
+                offset.getX() + pointDeparture.getX(), offset.getY() + pointDeparture.getY() - Render.detaHeight - Render.tileHeight);
+                tmp.rotate(offset.getX(), offset.getY());
+                tmp.translate(-0.25f * texture.getWidth(), - 0.25f * texture.getHeight() / 2);
+                tmp.scale(0.25f, 0.25f);
+                g2d.drawRenderedImage(texture, tmp);
+                break;
+            case "BULLET":
+                ac2 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+                g2d.setComposite(ac2);
+                tmp =  AffineTransform.getTranslateInstance(
+                offset.getX() + pointDeparture.getX() - 0.25f * texture.getWidth() / 2, offset.getY() 
+                + pointDeparture.getY() - Render.detaHeight - Render.tileHeight);
+                tmp.scale(0.25f, 0.25f);
+                g2d.drawRenderedImage(texture, tmp);
+                break;
+            case "SWORD":
+                ac2 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+                g2d.setComposite(ac2);
+                tmp =  AffineTransform.getTranslateInstance(
+                pointDeparture.getX(), pointDeparture.getY() - Render.detaHeight - Render.tileHeight);
+                if (departureTile.getUnit().isFlipped()) tmp.scale(-1.0f, 1.0f);
+                tmp.rotate(getRotation());
+                tmp.translate(0.f, - 0.80f * texture.getHeight());
+                tmp.scale(0.80f, 0.80f);
+                g2d.drawRenderedImage(texture, tmp);
+                break;
             default:
                 return;
         }
+    }
+}
+
+class StringMotion extends Motion{
+
+    private String string;
+    private Color color;
+
+    public StringMotion(String string, Tile t, double start, double deadline, Color color) {
+        super(t, start, deadline);
+        this.string = string;
+        this.color = color;
+        setMotionType(MotionType.RISE);
+    }
+
+    public void drawString(Graphics2D g2d){
+
+        Point2D offset = getOffset();
+        Point2D pointDeparture = Render.camera.transPoint(new Point2D.Double((double)departureTile.getY(), (double)departureTile.getX()));
+        AlphaComposite ac2 = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f - (float)(lastTime / (deadline - startTime)));
+        g2d.setComposite(ac2);
+        g2d.setFont(new Font("Avenir", Font.BOLD, 64));
+        g2d.setColor(Color.black);
+        g2d.drawString(string, (int)(offset.getX() + pointDeparture.getX() - string.length() * 16 + 4),
+        (int)(offset.getY() + pointDeparture.getY() - Render.detaHeight - Render.tileHeight * 2));
+        g2d.setColor(color);
+        g2d.drawString(string, (int)(offset.getX() + pointDeparture.getX() - string.length() * 16),
+        (int)(offset.getY() + pointDeparture.getY() - Render.detaHeight - Render.tileHeight * 2));
     }
 }
