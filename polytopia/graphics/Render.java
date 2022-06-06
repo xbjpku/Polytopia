@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 import polytopia.gameplay.*;
+import polytopia.gameplay.Resource;
 
 public class Render {
 
@@ -94,8 +95,21 @@ public class Render {
                         int voffset = 210;
                         if (type == Tile.TerrainType.SHORE || type == Tile.TerrainType.OCEAN)
                             voffset = 180;
+
+                        BufferedImage variation;
                         
-                        BufferedImage variation = Texture.getVariationTexture (tile.getVariation());
+                        if (tile.getVariation() instanceof Resource
+                            && tile.getVariation().getActions().length == 1
+                            && tile.getVariation().getActions()[0].isVisibleTo(Game.getHumanPlayer())) 
+                            variation = Texture.getTextureByName (
+                            tile.getVariation().getStyle() == null ? 
+                            String.join("-", tile.getVariation().toString(), "active") :
+                            String.join("-", tile.getVariation().toString(), tile.getVariation().getStyle().toString(), "active")
+                            );
+                        else
+                            variation = Texture.getVariationTexture (tile.getVariation());
+                        
+                        
                         g2d.drawImage (variation, null, (int)point.getX() - variation.getWidth()/2, (int)point.getY() - variation.getHeight() - voffset + Integer.min(tileHeight, variation.getHeight()/2));
                     }
                 }

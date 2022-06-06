@@ -9,6 +9,7 @@ import javax.swing.*;
 import javax.imageio.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.InputMismatchException;
@@ -37,7 +38,7 @@ public class GameWindow {
     private JLabel labelStarsNumber;
     private JLabel labelTurnNumber;
     private JPanel actionPanel;
-    private JPanel background;
+    private JPanel buttonPanel;
 
 	private Tile selectedTile = null;
 	private Unit selectedUnit = null;
@@ -54,7 +55,7 @@ public class GameWindow {
         preferUnit = true;
         Render.clearDecorationMap();
 
-        background.setVisible(false);
+        buttonPanel.setVisible(true);
         actionPanel.setVisible(false);
     }
 
@@ -85,6 +86,8 @@ public class GameWindow {
             hint.setBackground(new Color(0,0,0,0));
             hint.setOpaque(true);
             actionPanel.add(hint);
+
+            buttonPanel.setVisible(false);
             actionPanel.setVisible(true);
             return;
         }
@@ -114,8 +117,9 @@ public class GameWindow {
             actionPanel.add(label);
         }
 
+        buttonPanel.setVisible(false);
         actionPanel.setVisible(true);
-        background.setVisible(true);
+        
         System.out.printf("%d\n", actions.size());
     }
 
@@ -267,8 +271,12 @@ public class GameWindow {
                 GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(frame);
                 frame.setVisible(true);
 
-				Game.start(18, (int) (System.currentTimeMillis()), "LAKES",
-							new String[]{"Imperius", "Bardur", "Oumaji"}, GameWindow.this);
+                ArrayList<String> draw = new ArrayList<>();
+                draw.add("Xinxi");draw.add("Imperius");draw.add("Bardur");draw.add("Oumaji");
+                Collections.shuffle(draw, new Random(System.currentTimeMillis()));
+                
+				Game.start(18, (int) (System.currentTimeMillis()), "RANDOM",
+							new String[]{draw.get(0), draw.get(1), draw.get(2)}, GameWindow.this);
 
 				synchronized (cond) {
 					loaded = true;
@@ -293,6 +301,7 @@ public class GameWindow {
                     }
                 };
                 gradient1.setSize(frame.getWidth(), 200);
+                
                 frame.getLayeredPane().setLayer(gradient1, 1);
                 frame.getLayeredPane().add(gradient1, 1);
 
@@ -358,7 +367,7 @@ public class GameWindow {
                 frame.getLayeredPane().add(stats, 3);
 
                 /* Buttons */
-                JPanel buttonPanel = new JPanel(new GridLayout(2, 3));
+                buttonPanel = new JPanel(new GridLayout(2, 3));
                 CircleButton buttonSettings = new CircleButton(GameWindow.this, "Exit Game", null);
                 CircleButton buttonTech = new CircleButton(GameWindow.this, "Tech Tree", null);
                 CircleButton buttonNextTurn = new CircleButton(GameWindow.this, "End Turn", Action.getActionByName("ActionEndTurn"));
@@ -397,19 +406,21 @@ public class GameWindow {
                 frame.getLayeredPane().add(buttonPanel, 4);
 
                 /* Action Panel */
+                /*
                 background = new JPanel();
                 background.setSize(frame.getWidth(), 150);
                 background.setLocation(0, frame.getHeight()-150);
                 background.setBackground(Color.BLACK);
                 background.setVisible(false);
                 frame.getLayeredPane().setLayer(background, 5);
-                frame.getLayeredPane().add(background, 5);
+                frame.getLayeredPane().add(background, 5);*/
 
                 actionPanel = new JPanel();
-                actionPanel.setBackground(Color.BLACK);
+                actionPanel.setBackground(new Color(0,0,0,0));
+                actionPanel.setOpaque(true);
                 actionPanel.setVisible(false);
-                frame.getLayeredPane().setLayer(actionPanel, 6);
-                frame.getLayeredPane().add(actionPanel, 6);
+                frame.getLayeredPane().setLayer(actionPanel, 5);
+                frame.getLayeredPane().add(actionPanel, 5);
 
             }
 		}

@@ -1174,7 +1174,8 @@ class ActionUnitUpgrade extends Action {
 
 
 	public boolean isVisibleTo(Player player) {
-		return unit.getOwnerPlayer() == player;
+		return unit.getOwnerPlayer() == player
+				&& unit.getType() != Unit.UnitType.GIANT;
 	}
 
 	public boolean isPerformableTo(Player player) {

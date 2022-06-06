@@ -936,7 +936,7 @@ class ConseqDiscoverTile extends Consequence {
 		
 		if(player != Game.getHumanPlayer())
 			return;
-			
+
 		long current = System.currentTimeMillis();
 		Motion t = Motion.getInstanceOfTextureMotion("FOG", subject, current, current + 400);
 		Render.addMotion(t);
@@ -1830,6 +1830,8 @@ class ConseqUnitSpawn extends Consequence {
 			Tile[][] grid = Game.map.getGrid();
 
 			for (Tile t : TileMap.getInnerRing(grid, tile.getX(), tile.getY())) {
+				if (t.getUnit() != null) 
+					continue;
 				// Need CLIMBING to go on mountains
 				if (t.getTerrainType() == Tile.TerrainType.MOUNTAIN 
 					&& !oldUnit.getOwnerPlayer().getTechs().contains(Tech.CLIMBING))

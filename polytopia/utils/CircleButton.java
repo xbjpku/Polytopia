@@ -4,7 +4,7 @@ import javax.swing.JButton;
 import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.geom.Point2D;
+import java.awt.geom.*;
 import java.awt.Font;
 import java.awt.BasicStroke;
 import java.awt.Graphics2D;
@@ -12,7 +12,9 @@ import java.awt.FontMetrics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.RenderingHints;
+import java.awt.image.*;
 import java.util.ArrayList;
+
 
 import polytopia.gameplay.Action;
 import polytopia.gameplay.Player;
@@ -20,6 +22,7 @@ import polytopia.gameplay.Player.Tech;
 import polytopia.gameplay.Game;
 import polytopia.window.GameWindow;
 import polytopia.graphics.Render;
+import polytopia.graphics.Texture;
 
 public class CircleButton extends JButton{
 	
@@ -136,8 +139,7 @@ public class CircleButton extends JButton{
 			else
 				g2d.setColor(new Color(0,0,0, 200));
 		}
-
-		else
+		if (this.getText() == "Exit Game")
 			g2d.setColor(new Color(156,220,254, 200));
 			
 		g2d.fillOval(getWidth()/2 - radius, getHeight()/2 - radius, diameter, diameter);
@@ -151,12 +153,29 @@ public class CircleButton extends JButton{
 		g2d.setStroke(new BasicStroke(2));
 		g2d.drawOval(getWidth()/2 - radius+1, getHeight()/2 - radius+1, diameter-2, diameter-2);
 		
+		/*
 		g2d.setColor(Color.WHITE);
 		Font font = new Font("Avenir", Font.ITALIC, 9);
 		g2d.setFont(font);
 		FontMetrics metrics = g2d.getFontMetrics(font);
 		int stringWidth = metrics.stringWidth(getText());
 		int stringHeight = metrics.getHeight();
-		g2d.drawString(getText(), getWidth()/2 - stringWidth/2, getHeight()/2 + stringHeight/4);
+		g2d.drawString(getText(), getWidth()/2 - stringWidth/2, getHeight()/2 + stringHeight/4);*/
+
+		String textureName = String.join("-", getText(), Game.getHumanPlayer().getFaction().toString());
+		BufferedImage texture = Texture.getTextureByName(textureName);
+		if (texture != null) {
+			int width = texture.getWidth();
+			int height = texture.getHeight();
+			float diagonal =(float)(Math.sqrt(width*width + height*height));
+
+			float scale = 0.8f * getHeight() / diagonal;
+			AffineTransformOp op = new AffineTransformOp(new AffineTransform(scale, 0, 0, scale, 0, 0),null);
+			g2d.drawImage(texture, op, 
+						(int)(getWidth()/2-width*scale/2),
+						(int)(getHeight()/2-height*scale/2));
+
+		}
+
 	}
 }
