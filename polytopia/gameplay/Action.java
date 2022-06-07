@@ -974,7 +974,7 @@ class ActionDestroyImprovement extends Action {
 
 	@Override
 	public String toString() {
-		return "Destroy " + subject.toString();
+		return "Destroy";
 	}
 
 	public ActionDestroyImprovement(Improvement subject) {
@@ -1352,7 +1352,7 @@ class ActionUnitHeal extends Action {
 
 	@Override
 	public String toString() {
-		return "Heals";
+		return "Heal Others";
 	}
 
 	public ActionUnitHeal(Unit unit) {this.unit = unit;}
@@ -1511,7 +1511,7 @@ class ActionUpgradeShip extends Action {
 
 	@Override
 	public String toString() {
-		return "Upgrades to battleship";
+		return "Upgrade to battleship";
 	}
 
 	public ActionUpgradeShip(Unit unit) {this.unit = unit;}

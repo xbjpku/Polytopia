@@ -105,12 +105,13 @@ public class GameWindow {
                 label.setIcon(new ImageIcon(Texture.getTextureByName("SMALL_STAR")));
                 
                 if (Action.isTechAction(action) && Action.actionToTech(action).prerequisite != null)              
-                    label.setText(String.format("<html> %d %s<br/>Requires: %s</html>", action.getCost(), action.toString(), Action.actionToTech(action).prerequisite.toString()));
+                    label.setText(String.format("<html> %d %s<br/>Needs: %s</html>", action.getCost(), action.toString(), Action.actionToTech(action).prerequisite.toString()));
                 else
                     label.setText(String.valueOf(action.getCost()) + " " + action.toString());
             }
             label.setVerticalAlignment(JLabel.TOP);
-            label.setFont(new Font("Avenir", Font.ITALIC, 12));
+            label.setHorizontalAlignment(JLabel.CENTER);
+            label.setFont(new Font("Avenir", Font.ITALIC, 11));
             label.setForeground(Color.WHITE);
             label.setBackground(new Color(0,0,0,0));
             label.setOpaque(true);
