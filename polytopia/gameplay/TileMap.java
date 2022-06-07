@@ -170,7 +170,7 @@ abstract class MapGenerator {
 		final double mountainRatio = 0.15;
 
 		if (mapType == MapType.RANDOM)
-			mapType = MapType.values()[rnd.nextInt(4)];
+			mapType = MapType.values()[rnd.nextInt(3)];
 		switch (mapType) {
 			case DRYLAND: waterRatio = 0.16; break;
 			case LAKES: waterRatio = 0.32; break;

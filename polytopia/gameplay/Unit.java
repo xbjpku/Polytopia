@@ -87,6 +87,7 @@ public class Unit implements Visualizable, Movable {
 		Motion t = Motion.getInstanceOfMovableMotion(this, this.position, current, current + 100);
 		Render.addMotion(t);
 		this.setMotion(t);
+
 		
         int size = Game.map.getSize();
 		Action[][] actionMap = new Action[size][size];
@@ -98,6 +99,9 @@ public class Unit implements Visualizable, Movable {
 					visibleActions.add(action);
 
 			if (!action.isPerformableTo(Game.getHumanPlayer()))
+				continue;
+
+			if (Game.getHumanPlayer() != Game.getCurrentPlayer())
 				continue;
 
 			if (action instanceof ActionUnitMove) {

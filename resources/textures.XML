@@ -354,10 +354,10 @@
 <entry key="ORGANIZATION-Imperius">./resources/tiles/Imperius/fruits.png</entry>
 <entry key="ORGANIZATION-Bardur">./resources/tiles/Bardur/fruits.png</entry>
 <entry key="ORGANIZATION-Oumaji">./resources/tiles/Oumaji/fruits.png</entry>
-<entry key="SHILEDS-Xinxi">./resources/units/Xinxi/defender.png</entry>
-<entry key="SHILEDS-Imperius">./resources/units/Imperius/defender.png</entry>
-<entry key="SHILEDS-Bardur">./resources/units/Bardur/defender.png</entry>
-<entry key="SHILEDS-Oumaji">./resources/units/Oumaji/defender.png</entry>
+<entry key="SHIELDS-Xinxi">./resources/units/Xinxi/defender.png</entry>
+<entry key="SHIELDS-Imperius">./resources/units/Imperius/defender.png</entry>
+<entry key="SHIELDS-Bardur">./resources/units/Bardur/defender.png</entry>
+<entry key="SHIELDS-Oumaji">./resources/units/Oumaji/defender.png</entry>
 <entry key="FARMING-Xinxi">./resources/tiles/farm.png</entry>
 <entry key="FARMING-Imperius">./resources/tiles/farm.png</entry>
 <entry key="FARMING-Bardur">./resources/tiles/farm.png</entry>

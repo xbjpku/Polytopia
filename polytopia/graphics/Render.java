@@ -164,7 +164,7 @@ public class Render {
                     voffset = 180;
 
                 String textureName = u.toString();
-                if (u.getOwnerPlayer() == Game.getHumanPlayer())
+                if (u.getOwnerPlayer() == Game.getHumanPlayer() && Game.getHumanPlayer() == Game.getCurrentPlayer())
                     textureName = String.join("-", textureName, (u.isMovable() || u.isAttackable() ? "active" : "inactive"));
                 
                 BufferedImage unitTexture = Texture.getTextureByName(textureName);

@@ -127,11 +127,6 @@ public class Player {
 		this.stars = isBot ? 10 : 5;
 		this.techs = new ArrayList<Tech>();
 		
-		/*
-		for (Tech tech : Tech.values()) {
-			this.techs.add(tech);
-		}*/
-		
 		switch(this.faction) {
 			case Xinxi: this.techs.add(Tech.CLIMBING); break;
 			case Imperius: this.techs.add(Tech.ORGANIZATION); break;
@@ -218,6 +213,7 @@ public class Player {
 			new ActionStartTurn().apply(this);
 
 		if (!this.isBot) {
+			Game.window.cancelSelection();
 			// Human player.
 			// TODO: A greeting message, if turn 0
 			// TODO: Release the BLOCK_ACTIONs lock, so that actions can be applied
@@ -225,7 +221,6 @@ public class Player {
 		else {
 			// Bot player.
 			// Invoke AI to take actions.
-			
 			
 			new Thread(()->{
 				AI.doSleep = 300;

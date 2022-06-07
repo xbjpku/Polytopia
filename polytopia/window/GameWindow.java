@@ -55,8 +55,8 @@ public class GameWindow {
         preferUnit = true;
         Render.clearDecorationMap();
 
-        buttonPanel.setVisible(true);
         actionPanel.setVisible(false);
+        buttonPanel.setVisible(true);
     }
 
     public void showActions(ArrayList<Action> actions) {
@@ -64,6 +64,8 @@ public class GameWindow {
         /* Action Panel */
         actionPanel.setVisible(false);
         actionPanel.removeAll();
+        actionPanel.setOpaque(true);
+        actionPanel.setBackground(new Color(0,0,0,0));
 
         if (actions.size() == 0) {
             actionPanel.setLayout(new GridLayout(1, 1));
@@ -417,8 +419,6 @@ public class GameWindow {
                 frame.getLayeredPane().add(background, 5);*/
 
                 actionPanel = new JPanel();
-                actionPanel.setBackground(new Color(0,0,0,0));
-                actionPanel.setOpaque(true);
                 actionPanel.setVisible(false);
                 frame.getLayeredPane().setLayer(actionPanel, 5);
                 frame.getLayeredPane().add(actionPanel, 5);

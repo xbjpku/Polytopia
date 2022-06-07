@@ -30,7 +30,6 @@ public class Camera {
     final private AffineTransform pointTrans = new AffineTransform();
     private AffineTransform trans = new AffineTransform();
 
-
     public Camera (int posX, int posY, double rotate, double sx, double sy, double theta, double scale) 
     {
         if (Math.abs(theta - Math.PI / 2) < 0.01) 

@@ -528,20 +528,9 @@ class ConseqGrowPopulation extends Consequence {
 		if (Game.getHumanPlayer() != Game.getCurrentPlayer())
 			return;
 
-		/* Note for Shaw: 
-			Population Animation
-			(use the Faction texture, like /resources/Xinxi/Xinxi.png, which is not yet added
-			to Texture.java. You need to add some entries to Texture.XML, and use getTextureByName()
-			to get that texture.
-			Make that texture move from SOURCE to SUBJECT (the tile it is on), along a curve.
-			BLOCKING: Wait for the animation to complete.
-
-			(Then) 
-			Tile Jump Animation.
-			Make the tile (that SUBJECT is on) shake (down and up) a bit. 
-			NON-BLOCKING: Does not wait for the animation to complete. */
 		long current = System.currentTimeMillis();
-		Motion t = Motion.getInstanceOfTextureMotion("POPULATION-" + source.getOwnerCity().getOwnerPlayer().getFaction().toString(),
+		Motion t = Motion.getInstanceOfTextureMotion(
+			"POPULATION-" + source.getOwnerCity().getOwnerPlayer().getFaction().toString(),
 			source, source.getOwnerCity().getOwnerTile(),  current, current + 500);
 		Render.addMotion(t);
 		
@@ -552,7 +541,9 @@ class ConseqGrowPopulation extends Consequence {
 		}
 
 		current = System.currentTimeMillis();
-		t = Motion.getInstanceOfMovableMotion(subject.getOwnerTile(), subject.getOwnerTile(), current, current + 200);
+		t = Motion.getInstanceOfMovableMotion(
+			subject.getOwnerTile(), 
+			subject.getOwnerTile(), current, current + 200);
 		Render.addMotion(t);
 		subject.getOwnerTile().setMotion(t);
 
