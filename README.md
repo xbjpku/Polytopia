@@ -1,6 +1,9 @@
 # Polytopia
 Java Term Project
 
+> See the attached video for a demo, and the slides for some in-depth explanation of our development highlights.
+> Also, refer to the end of the slides for our **individual contributions**.
+
 ### /resources
 Currently contains textures for the game. The /resources/textures.XML can be modified to include new textures. Refer to `Texture.java` for how the key-value pair should be formatted.
 
