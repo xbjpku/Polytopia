@@ -100,3 +100,7 @@ java -jar Polytopia.jar
 ```
 to run the packed game. Directly clicking on this file would not work, as the resources are loaded according to relative paths. For now, you can only run this file in terminal.
 
+### Watching the demo
+
+![图片](https://user-images.githubusercontent.com/75665565/174342925-f2e65582-c7bd-4bf7-8df4-43ef623175d7.png)
+
