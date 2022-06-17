@@ -102,5 +102,5 @@ to run the packed game. Directly clicking on this file would not work, as the re
 
 ### Watching the demo
 
-![图片](https://user-images.githubusercontent.com/75665565/174342925-f2e65582-c7bd-4bf7-8df4-43ef623175d7.png)
+[click here](https://disk.pku.edu.cn:443/link/021A87844EBF20764B583A5A3707F706)
 
