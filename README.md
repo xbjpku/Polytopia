@@ -24,7 +24,7 @@ Implements core game logic, and the Action-Consequence framework on which the ga
 
 * `Tile.java`: Describes a tile on the game map.
 
-* `TileVariation.java`: Describes the variation that can be attached to a tile, including Resource, Improvement and City. 
+* `TileVariation.java`: Describes the variation that can be attached to a tile, including Resource, Improvement and Cit
 
 * `Unit.java`: Describes a unit in the game. 
 
